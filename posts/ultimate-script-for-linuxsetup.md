@@ -9,7 +9,7 @@ tags: ["ubuntu", "vps", "automation", "docker", "bilingual"]
 ---
 
 ### The "I Forgot to Install Git Again" Solution
-![linux](../public/images/linux.png)
+
 Hey everyone!
 
 We’ve all been there. You just spun up a fresh Ubuntu VPS or a new Virtual Machine. You’re excited to start deploying your project. You SSH in, ready to rock, you type `git clone...` and boom:
@@ -138,10 +138,7 @@ And that’s it! In about 2 minutes, you go from a blank slate to a fully secure
 Hopefully, this script saves you some time on your next project. Let me know if you think I missed any essential tools in the comments below!
 Happy Coding!
 
------
-
-
-
+-------
 
 ### Hội chứng "Quên cài Git" và chiếc Script cứu cánh cho Ubuntu Server mới
 
