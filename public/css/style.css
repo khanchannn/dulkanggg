@@ -67,8 +67,10 @@ nav a:hover {
 .social-links a {
     margin-right: 15px;
     color: var(--link-color);
-    /* Sẽ nhận màu Matrix Green */
+    /* <-- Đảm bảo dòng này dùng biến màu xanh lá */
     text-decoration: none;
+    font-weight: bold;
+    /* In đậm cho nổi bật */
 }
 
 /* --- PHẦN BỔ SUNG QUAN TRỌNG CHO DANH SÁCH BÀI VIẾT --- */
@@ -119,6 +121,16 @@ nav a:hover {
     color: #2ecc71;
     /* Màu xanh lá đậm hơn cho chữ đậm */
     font-weight: 700;
+}
+
+.post-content a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-family: 'Fira Code', monospace;
+}
+
+.post-content a:hover {
+    text-decoration: underline;
 }
 
 /* --- Code Block --- */
