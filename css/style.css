@@ -1,11 +1,12 @@
 :root {
-    --bg-color: #0d1117;
+    --bg-color: #0a192f;
+    /* Dark Navy */
     --text-color: #c9d1d9;
     --link-color: #58a6ff;
     --accent-color: #8b949e;
     --border-color: #30363d;
-    --header-bg: #161b22;
-    --code-bg: #161b22;
+    --header-bg: #112240;
+    --code-bg: #112240;
     --font-mono: 'Courier New', Courier, monospace;
 }
 
@@ -98,30 +99,99 @@ nav a:hover {
 /* Post Detail */
 .post-content {
     margin-top: 20px;
+    font-size: 1.1em;
 }
 
-.post-content h1, .post-content h2, .post-content h3 {
-    color: var(--text-color);
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+    color: #e2b714;
+    /* Default Gold for h1, h2, h4 */
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    font-weight: bold;
+}
+
+.post-content h1 {
+    font-size: 2em;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5em;
+}
+
+.post-content h2 {
+    font-size: 1.5em;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 0.3em;
 }
 
-.post-content a {
-    color: var(--link-color);
+.post-content h3 {
+    font-size: 1.25em;
+    color: #e67e22;
+    /* Orange Brick for ### */
+    border-bottom: none;
 }
 
+.post-content p {
+    margin-bottom: 1.2em;
+    color: #d0d7de;
+}
+
+.post-content a {
+    color: #58a6ff;
+    text-decoration: underline;
+}
+
+.post-content strong {
+    color: #2ecc71;
+    /* Green for **bold** */
+    font-weight: 700;
+}
+
+.post-content ul,
+.post-content ol {
+    margin-bottom: 1.2em;
+    padding-left: 2em;
+}
+
+.post-content li {
+    margin-bottom: 0.5em;
+}
+
+.post-content blockquote {
+    border-left: 4px solid #e2b714;
+    padding: 10px 20px;
+    margin: 20px 0;
+    background-color: rgba(226, 183, 20, 0.1);
+    color: #8b949e;
+    font-style: italic;
+}
+
+/* Enhanced Code Blocks */
 .post-content code {
-    background-color: var(--code-bg);
+    background-color: rgba(110, 118, 129, 0.4);
     padding: 0.2em 0.4em;
-    border-radius: 3px;
+    border-radius: 6px;
     font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: #ff7b72;
 }
 
 .post-content pre {
-    background-color: var(--code-bg);
+    background-color: #112240;
     padding: 16px;
     overflow: auto;
     border-radius: 6px;
+    border: 1px solid #30363d;
+    margin-bottom: 1.5em;
+}
+
+.post-content pre code {
+    background-color: transparent;
+    padding: 0;
+    color: #c9d1d9;
+    font-size: 0.9em;
+    display: block;
 }
 
 /* Footer */
@@ -139,6 +209,7 @@ footer {
     .post-item {
         flex-direction: column;
     }
+
     .post-date {
         margin-bottom: 5px;
     }
