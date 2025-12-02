@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        A Friendly Guide to Setting Up a Fresh Ubuntu Server
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            A Friendly Guide to Setting Up a Fresh Ubuntu Server
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-01
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/ubuntu"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ubuntu
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/vps"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        vps
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/automation"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        automation
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/docker"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        docker
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>The &quot;I Forgot to Install Git Again&quot; Solution</h3>
+<p>Hey everyone!</p>
+<p>We’ve all been there. You just spun up a fresh Ubuntu VPS or a new Virtual Machine. You’re excited to start deploying your project. You SSH in, ready to rock, you type <code>git clone...</code> and boom:</p>
+<blockquote>
+<p><code>bash: git: command not found</code></p>
+</blockquote>
+<p><strong>Ugh. Frustrating, right?</strong></p>
+<p>Then you install Git. Then you try to unzip a file. Command not found. Then you realize <code>htop</code> isn&#39;t there. And worse, halfway through the night, you remember you completely forgot to configure the firewall, leaving your server wide open.</p>
+<p>Honestly, remembering every single utility and security package for every new server is a pain. It’s repetitive, and manual work leads to mistakes.</p>
+<p>That’s why I decided to stop doing it manually and wrote a <strong>&quot;One-Click&quot; script</strong> to handle the boring stuff for me. I’m sharing it here so you can save time (and sanity) too.</p>
+<h4>The Essentials: What We Are Installing</h4>
+<p>Before we get to the script, here is the &quot;Survival Kit&quot; I believe every modern Ubuntu server needs:</p>
+<ol>
+<li><p><strong>The Toolbox (System Utilities)</strong></p>
+<ul>
+<li><strong>curl &amp; wget:</strong> For downloading stuff.</li>
+<li><strong>git:</strong> Because how else are you getting your code?</li>
+<li><strong>vim / nano:</strong> You need to edit config files somehow.</li>
+<li><strong>htop:</strong> Because the default <code>top</code> is hard to read.</li>
+<li><strong>unzip &amp; net-tools:</strong> For managing archives and checking network stats (<code>ifconfig</code>).</li>
+</ul>
+</li>
+<li><p><strong>The Bodyguards (Security)</strong></p>
+<ul>
+<li><strong>ufw (Uncomplicated Firewall):</strong> The easiest way to manage ports.</li>
+<li><strong>fail2ban:</strong> A must-have. It watches for repeated failed login attempts (brute-force attacks) and automatically bans those IP addresses.</li>
+</ul>
+</li>
+<li><p><strong>The Engine Room (Web &amp; Containers)</strong></p>
+<ul>
+<li><strong>nginx:</strong> A lightweight, high-performance web server and reverse proxy.</li>
+<li><strong>docker &amp; docker-compose:</strong> It’s 2024 (almost 2025!). We shouldn&#39;t be installing messy dependencies directly on the OS anymore. Docker keeps everything clean and portable.</li>
+</ul>
+</li>
+</ol>
+<h4>The Script</h4>
+<p>Here is the magic shell script. It automates everything: updates the system, installs the tools, configures the firewall to allow SSH (so you don&#39;t lock yourself out!), and sets up Docker.</p>
+<p><strong>How to use it:</strong></p>
+<ol>
+<li>Create a file: <code>nano setup_server.sh</code></li>
+<li>Paste the code below.</li>
+<li>Make it executable: <code>chmod +x setup_server.sh</code></li>
+<li>Run it: <code>sudo ./setup_server.sh</code></li>
+</ol>
+<pre><code class="language-bash">#!/bin/bash
+
+# ==========================================
+# The Ultimate Ubuntu Server Setup Script
+# Author: Khang (Dulkanggg)
+# ==========================================
+
+# 1. Check for Root Privileges
+if [ &quot;$EUID&quot; -ne 0 ]; then 
+  echo &quot;Please run this script as root (use sudo)&quot;
+  exit
+fi
+
+echo &quot;--- STARTING SYSTEM UPDATE ---&quot;
+apt update &amp;&amp; apt upgrade -y
+
+echo &quot;--- 1. INSTALLING ESSENTIAL UTILITIES ---&quot;
+# Installing curl, wget, git, htop, vim, unzip, net-tools, etc.
+apt install -y curl wget git htop vim nano unzip net-tools software-properties-common ca-certificates gnupg lsb-release
+
+echo &quot;--- 2. SETTING UP SECURITY (UFW &amp; FAIL2BAN) ---&quot;
+apt install -y ufw fail2ban
+
+# Configuring Basic Firewall Rules
+# IMPORTANT: We must allow SSH first to prevent locking ourselves out!
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# Enable UFW (Auto-confirm &#39;yes&#39;)
+echo &quot;y&quot; | ufw enable
+
+echo &quot;--- 3. INSTALLING NGINX (Web Server) ---&quot;
+apt install -y nginx
+systemctl start nginx
+systemctl enable nginx
+
+echo &quot;--- 4. INSTALLING DOCKER &amp; DOCKER COMPOSE ---&quot;
+# Add Docker&#39;s official GPG key
+mkdir -p /etc/apt/keyrings
+curl -fsSL [https://download.docker.com/linux/ubuntu/gpg](https://download.docker.com/linux/ubuntu/gpg) | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Set up the repository
+echo \
+  &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] [https://download.docker.com/linux/ubuntu](https://download.docker.com/linux/ubuntu) \
+  $(lsb_release -cs) stable&quot; | tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Start Docker service
+systemctl start docker
+systemctl enable docker
+
+# Add current user to Docker group (so you don&#39;t need &#39;sudo&#39; for docker commands)
+# Note: This checks for the user who ran the sudo command
+if [ -n &quot;$SUDO_USER&quot; ]; then
+    usermod -aG docker $SUDO_USER
+    echo &quot;User $SUDO_USER has been added to the docker group.&quot;
+fi
+
+echo &quot;--- SYSTEM CLEANUP ---&quot;
+apt autoremove -y
+
+echo &quot;==========================================&quot;
+echo &quot;   SETUP COMPLETE! READY TO ROCK.&quot;
+echo &quot;==========================================&quot;
+echo &quot;Versions Installed:&quot;
+echo &quot;- Nginx: $(nginx -v 2&gt;&amp;1 | cut -d &#39;/&#39; -f 2)&quot;
+echo &quot;- Docker: $(docker --version)&quot;
+echo &quot;- UFW Status: $(ufw status | grep &#39;Status&#39;)&quot;
+echo &quot;NOTE: Please logout and login again to apply Docker group permissions.&quot;
+
+---
+
+### Wrapping Up
+And that’s it! In about 2 minutes, you go from a blank slate to a fully secured, Docker-ready server with all the creature comforts installed.
+Hopefully, this script saves you some time on your next project. Let me know if you think I missed any essential tools in the comments below!
+Happy Coding!
+
+-----
+
+### Hội chứng &quot;Quên cài Git&quot; và chiếc Script cứu cánh cho Ubuntu Server mới
+
+Chào mọi người,
+
+Chắc hẳn ai trong chúng ta cũng từng rơi vào cảnh này ít nhất một (hoặc nhiều) lần. Bạn vừa thuê được một con VPS ngon nghẻ, hoặc vừa tạo xong một máy ảo (VM) Ubuntu mới cứng để làm lab. Tâm trạng đang hừng hực khí thế, SSH vào server, gõ lệnh đầu tiên định kéo source về:
+
+`git clone ...`
+
+Và hệ thống trả về một câu xanh rờn:
+
+&gt; `bash: git: command not found`
+
+**Cụt hứng thực sự!**
+
+Thế là lại phải ngồi `apt install git`. Xong xuôi, định giải nén cái file data thì lại thiếu `unzip`. Muốn xem RAM, CPU thế nào cho trực quan thì nhớ ra chưa cài `htop`. Tệ hơn nữa là hì hục cả đêm deploy xong, sáng hôm sau mới tá hỏa nhận ra mình... quên bật tường lửa (Firewall), server &quot;trần trụi&quot; giữa internet.
+
+Việc nhớ hết tất cả những gói phần mềm (packages) lặt vặt mỗi khi cài lại máy thực sự rất phiền phức và tốn thời gian. Mà làm thủ công thì kiểu gì cũng sót.
+
+Đó là lý do mình quyết định không làm &quot;thủ công mỹ nghệ&quot; nữa. Thay vào đó, mình gom tất cả vào một script duy nhất. Chỉ cần chạy một dòng lệnh, đi pha cốc cà phê, quay lại là đã có một server &quot;full option&quot; để sẵn sàng chiến đấu.
+
+Hôm nay mình chia sẻ lại script này cho anh em, hy vọng giúp mọi người tiết kiệm thời gian (và đỡ bực mình).
+
+#### Bộ &quot;đồ nghề&quot; sinh tồn (Survival Kit) gồm những gì?
+
+Trước khi đi vào script, điểm qua xem chúng ta sẽ cài những gì và tại sao nó cần thiết nhé:
+
+**1. Nhóm Công cụ (System Utilities) - &quot;Thiếu thì rất bực&quot;**
+
+* **curl &amp; wget:** Để tải file, test API.
+* **git:** Không có cái này thì lấy code kiểu gì?
+* **vim / nano:** Để sửa file config nhanh gọn.
+* **htop:** Xem tài nguyên máy (RAM/CPU) sướng hơn lệnh `top` mặc định nhiều.
+* **unzip &amp; net-tools:** Giải nén file và check IP/Port (`ifconfig`, `netstat`).
+
+**2. Nhóm Vệ sĩ (Security)
+
+* **ufw:** Tường lửa đơn giản nhất quả đất. Đóng hết các cửa, chỉ mở cửa cho mình vào thôi.
+* **fail2ban:** Thằng này cực hay. Nó sẽ canh cửa SSH, ai gõ sai mật khẩu nhiều lần là nó chặn (ban) IP đó luôn. Chống dò mật khẩu cực tốt.
+
+**3. Nhóm Vận hành (Engine Room)
+
+* **nginx:** Web server nhẹ, làm Reverse Proxy cực mượt.
+* **docker &amp; docker-compose:** Giờ là thời đại của Container rồi. Cài database, redis hay app thì cứ đóng vào Docker cho sạch máy, đỡ xung đột thư viện.
+
+---
+
+#### Script &quot;One-Click&quot; (Tự động hóa)
+
+Đây là đoạn script bash sẽ làm hết mọi việc từ A-Z: cập nhật hệ thống, cài tool, và quan trọng nhất là cấu hình Firewall chuẩn để bạn không bị... tự nhốt mình ở ngoài (do chặn nhầm port SSH).
+
+**Cách dùng:**
+
+1.  Tạo file mới: `nano setup_server.sh`
+2.  Copy nội dung bên dưới dán vào.
+3.  Cấp quyền chạy: `chmod +x setup_server.sh`
+4.  Chạy script (cần quyền root): `sudo ./setup_server.sh`
+
+```bash
+#!/bin/bash
+
+# ==========================================
+# Script Cài đặt Ubuntu Server &quot;Full Option&quot;
+# Tác giả: Khang (Dulkanggg)
+# ==========================================
+
+# 1. Kiểm tra xem có phải đang chạy bằng quyền Root không
+if [ &quot;$EUID&quot; -ne 0 ]; then 
+  echo &quot;Lỗi: Bạn phải chạy script này bằng quyền root (sudo)&quot;
+  exit
+fi
+
+echo &quot;--- BẮT ĐẦU CẬP NHẬT HỆ THỐNG (Ngồi chờ xíu nhé...) ---&quot;
+apt update &amp;&amp; apt upgrade -y
+
+echo &quot;--- 1. CÀI ĐẶT CÔNG CỤ CƠ BẢN (Utilities) ---&quot;
+# Mấy cái này thiếu là rất khó chịu
+apt install -y curl wget git htop vim nano unzip net-tools software-properties-common ca-certificates gnupg lsb-release
+
+echo &quot;--- 2. CÀI ĐẶT BẢO MẬT (UFW &amp; FAIL2BAN) ---&quot;
+apt install -y ufw fail2ban
+
+# Cấu hình Tường lửa (Firewall)
+# QUAN TRỌNG: Phải mở port SSH (22) trước, không là mất kết nối luôn!
+ufw default deny incoming  # Chặn tất cả chiều vào
+ufw default allow outgoing # Cho phép tất cả chiều ra
+ufw allow ssh              # Mở cổng SSH
+ufw allow 22/tcp
+ufw allow 80/tcp           # Mở cổng Web (HTTP)
+ufw allow 443/tcp          # Mở cổng Web (HTTPS)
+
+# Kích hoạt UFW (Tự động chọn &#39;yes&#39;)
+echo &quot;y&quot; | ufw enable
+
+echo &quot;--- 3. CÀI ĐẶT NGINX (Web Server) ---&quot;
+apt install -y nginx
+systemctl start nginx
+systemctl enable nginx
+
+echo &quot;--- 4. CÀI ĐẶT DOCKER &amp; DOCKER COMPOSE ---&quot;
+# Thêm key chính thức của Docker
+mkdir -p /etc/apt/keyrings
+curl -fsSL [https://download.docker.com/linux/ubuntu/gpg](https://download.docker.com/linux/ubuntu/gpg) | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Thiết lập repository tải về
+echo \
+  &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] [https://download.docker.com/linux/ubuntu](https://download.docker.com/linux/ubuntu) \
+  $(lsb_release -cs) stable&quot; | tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Bật Docker service
+systemctl start docker
+systemctl enable docker
+
+# Thêm user hiện tại vào nhóm docker (để gõ lệnh docker không cần thêm sudo)
+if [ -n &quot;$SUDO_USER&quot; ]; then
+    usermod -aG docker $SUDO_USER
+    echo &quot;Đã thêm user $SUDO_USER vào nhóm docker.&quot;
+fi
+
+echo &quot;--- DỌN DẸP RÁC HỆ THỐNG ---&quot;
+apt autoremove -y
+
+echo &quot;==========================================&quot;
+echo &quot;   CÀI ĐẶT HOÀN TẤT! CHIẾN THÔI.&quot;
+echo &quot;==========================================&quot;
+echo &quot;Các phiên bản đã cài:&quot;
+echo &quot;- Nginx: $(nginx -v 2&gt;&amp;1 | cut -d &#39;/&#39; -f 2)&quot;
+echo &quot;- Docker: $(docker --version)&quot;
+echo &quot;- Tường lửa (UFW): $(ufw status | grep &#39;Status&#39;)&quot;
+echo &quot;LƯU Ý: Hãy Logout và Login lại để áp dụng quyền Docker nhé!&quot;
+
+Đây là bản Markdown (.md) đã được chỉnh sửa hoàn chỉnh.
+
+Mình đã thực hiện các việc sau:
+
+Sửa lỗi cú pháp Script: Đoạn code bạn gửi bị dính dòng (ví dụ: exitfi, upgrade -yecho), mình đã tách dòng và format lại chuẩn cú pháp Bash để người đọc có thể copy chạy ngay mà không bị lỗi.
+
+Làm sạch link: Loại bỏ các định dạng link thừa trong đoạn code (ví dụ: [link](link) -&gt; link).
+
+Thêm Frontmatter: Để phù hợp với format bài viết trước (tác giả Khang, ngày tháng, tags).
+
+Bạn có thể lưu nội dung dưới đây thành file .md.
+
+Markdown
+
+---
+title: &quot;Hội chứng &#39;Quên cài Git&#39; và chiếc Script cứu cánh cho Ubuntu Server mới&quot;
+date: &quot;2025-12-02&quot;
+tags: [&quot;ubuntu&quot;, &quot;vps&quot;, &quot;devops&quot;, &quot;bash-script&quot;, &quot;docker&quot;]
+author: &quot;Khang&quot;
+description: &quot;Chia sẻ script tự động cài đặt các công cụ cần thiết, cấu hình tường lửa và Docker cho VPS Ubuntu mới.&quot;
+---
+
+### Hội chứng &quot;Quên cài Git&quot; và chiếc Script cứu cánh cho Ubuntu Server mới
+
+Chào anh em,
+
+Chắc hẳn ai trong chúng ta cũng từng rơi vào cảnh này ít nhất một (hoặc nhiều) lần. Bạn vừa thuê được một con VPS ngon nghẻ, hoặc vừa tạo xong một máy ảo (VM) Ubuntu mới cứng để làm lab. Tâm trạng đang hừng hực khí thế, SSH vào server, gõ lệnh đầu tiên định kéo source về:
+
+`git clone ...`
+
+Và hệ thống trả về một câu xanh rờn:
+
+&gt; `bash: git: command not found`
+
+**Cụt hứng thực sự!**
+
+Thế là lại phải ngồi `apt install git`. Xong xuôi, định giải nén cái file data thì lại thiếu `unzip`. Muốn xem RAM, CPU thế nào cho trực quan thì nhớ ra chưa cài `htop`. Tệ hơn nữa là hì hục cả đêm deploy xong, sáng hôm sau mới tá hỏa nhận ra mình... quên bật tường lửa (Firewall), server &quot;trần trụi&quot; giữa internet.
+
+Việc nhớ hết tất cả những gói phần mềm (packages) lặt vặt mỗi khi cài lại máy thực sự rất phiền phức và tốn thời gian. Mà làm thủ công thì kiểu gì cũng sót.
+
+Đó là lý do mình quyết định không làm &quot;thủ công mỹ nghệ&quot; nữa. Thay vào đó, mình gom tất cả vào một script duy nhất. Chỉ cần chạy một dòng lệnh, đi pha cốc cà phê, quay lại là đã có một server &quot;full option&quot; để sẵn sàng chiến đấu.
+
+Hôm nay mình chia sẻ lại script này cho anh em, hy vọng giúp mọi người tiết kiệm thời gian (và đỡ bực mình).
+
+#### Bộ &quot;đồ nghề&quot; sinh tồn (Survival Kit) gồm những gì?
+
+Trước khi đi vào script, điểm qua xem chúng ta sẽ cài những gì và tại sao nó cần thiết nhé:
+
+**1. Nhóm Công cụ (System Utilities) - &quot;Thiếu thì rất bực&quot;**
+
+* **curl &amp; wget:** Để tải file, test API.
+* **git:** Không có cái này thì lấy code kiểu gì?
+* **vim / nano:** Để sửa file config nhanh gọn.
+* **htop:** Xem tài nguyên máy (RAM/CPU) sướng hơn lệnh `top` mặc định nhiều.
+* **unzip &amp; net-tools:** Giải nén file và check IP/Port (`ifconfig`, `netstat`).
+
+**2. Nhóm Vệ sĩ (Security) - &quot;Không có thì toang&quot;**
+
+* **ufw:** Tường lửa đơn giản nhất quả đất. Đóng hết các cửa, chỉ mở cửa cho mình vào thôi.
+* **fail2ban:** Thằng này cực hay. Nó sẽ canh cửa SSH, ai gõ sai mật khẩu nhiều lần là nó chặn (ban) IP đó luôn. Chống dò mật khẩu cực tốt.
+
+**3. Nhóm Vận hành (Engine Room) - &quot;Chuẩn hiện đại&quot;**
+
+* **nginx:** Web server nhẹ, làm Reverse Proxy cực mượt.
+* **docker &amp; docker-compose:** Giờ là thời đại của Container rồi. Cài database, redis hay app thì cứ đóng vào Docker cho sạch máy, đỡ xung đột thư viện.
+
+---
+
+#### Script &quot;One-Click&quot; (Tự động hóa)
+
+Đây là đoạn script bash sẽ làm hết mọi việc từ A-Z: cập nhật hệ thống, cài tool, và quan trọng nhất là cấu hình Firewall chuẩn để bạn không bị... tự nhốt mình ở ngoài (do chặn nhầm port SSH).
+
+**Cách dùng:**
+
+1.  Tạo file mới: `nano setup_server.sh`
+2.  Copy nội dung bên dưới dán vào.
+3.  Cấp quyền chạy: `chmod +x setup_server.sh`
+4.  Chạy script (cần quyền root): `sudo ./setup_server.sh`
+
+```bash
+#!/bin/bash
+
+# ==========================================
+# Script Cài đặt Ubuntu Server &quot;Full Option&quot;
+# Tác giả: Khang (Dulkanggg)
+# ==========================================
+
+# 1. Kiểm tra xem có phải đang chạy bằng quyền Root không
+if [ &quot;$EUID&quot; -ne 0 ]; then 
+  echo &quot;Lỗi: Bạn phải chạy script này bằng quyền root (sudo)&quot;
+  exit
+fi
+
+echo &quot;--- BẮT ĐẦU CẬP NHẬT HỆ THỐNG (Ngồi chờ xíu nhé...) ---&quot;
+apt update &amp;&amp; apt upgrade -y
+
+echo &quot;--- 1. CÀI ĐẶT CÔNG CỤ CƠ BẢN (Utilities) ---&quot;
+# Mấy cái này thiếu là rất khó chịu
+apt install -y curl wget git htop vim nano unzip net-tools software-properties-common ca-certificates gnupg lsb-release
+
+echo &quot;--- 2. CÀI ĐẶT BẢO MẬT (UFW &amp; FAIL2BAN) ---&quot;
+apt install -y ufw fail2ban
+
+# Cấu hình Tường lửa (Firewall)
+# QUAN TRỌNG: Phải mở port SSH (22) trước, không là mất kết nối luôn!
+ufw default deny incoming  # Chặn tất cả chiều vào
+ufw default allow outgoing # Cho phép tất cả chiều ra
+ufw allow ssh              # Mở cổng SSH
+ufw allow 22/tcp
+ufw allow 80/tcp           # Mở cổng Web (HTTP)
+ufw allow 443/tcp          # Mở cổng Web (HTTPS)
+
+# Kích hoạt UFW (Tự động chọn &#39;yes&#39;)
+echo &quot;y&quot; | ufw enable
+
+echo &quot;--- 3. CÀI ĐẶT NGINX (Web Server) ---&quot;
+apt install -y nginx
+systemctl start nginx
+systemctl enable nginx
+
+echo &quot;--- 4. CÀI ĐẶT DOCKER &amp; DOCKER COMPOSE ---&quot;
+# Thêm key chính thức của Docker
+mkdir -p /etc/apt/keyrings
+curl -fsSL [https://download.docker.com/linux/ubuntu/gpg](https://download.docker.com/linux/ubuntu/gpg) | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Thiết lập repository tải về
+echo \
+  &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] [https://download.docker.com/linux/ubuntu](https://download.docker.com/linux/ubuntu) \
+  $(lsb_release -cs) stable&quot; | tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Bật Docker service
+systemctl start docker
+systemctl enable docker
+
+# Thêm user hiện tại vào nhóm docker (để gõ lệnh docker không cần thêm sudo)
+if [ -n &quot;$SUDO_USER&quot; ]; then
+    usermod -aG docker $SUDO_USER
+    echo &quot;Đã thêm user $SUDO_USER vào nhóm docker.&quot;
+fi
+
+echo &quot;--- DỌN DẸP RÁC HỆ THỐNG ---&quot;
+apt autoremove -y
+
+echo &quot;==========================================&quot;
+echo &quot;   CÀI ĐẶT HOÀN TẤT! CHIẾN THÔI.&quot;
+echo &quot;==========================================&quot;
+echo &quot;Các phiên bản đã cài:&quot;
+echo &quot;- Nginx: $(nginx -v 2&gt;&amp;1 | cut -d &#39;/&#39; -f 2)&quot;
+echo &quot;- Docker: $(docker --version)&quot;
+echo &quot;- Tường lửa (UFW): $(ufw status | grep &#39;Status&#39;)&quot;
+echo &quot;LƯU Ý: Hãy Logout và Login lại để áp dụng quyền Docker nhé!&quot;
+
+---
+
+### Lời kết
+Vậy là xong! Chỉ mất tầm 2-3 phút chạy script, bạn đã biến một con server &quot;trắng trơn&quot; thành một môi trường đầy đủ tiện nghi, bảo mật cơ bản tốt và sẵn sàng chạy Docker.
+
+Hy vọng cái script nhỏ này giúp ích cho anh em trong quá trình &quot;vọc vạch&quot; server. Nếu anh em thấy còn thiếu món &quot;đồ chơi&quot; nào quan trọng nữa thì comment bên dưới để mình bổ sung vào script nhé!
+</code></pre>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
