@@ -54,6 +54,7 @@ async function build() {
     // 1. Copy Public Assets
     console.log('Copying assets...');
     copyDir(publicDir, distDir);
+    fs.writeFileSync(path.join(distDir, '.nojekyll'), '');
 
     // 2. Build Home Page
     console.log('Building Home page...');
