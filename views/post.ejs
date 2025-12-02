@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            <%= post.title %>
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                <%= post.date %>
+            </span>
+            <% if (post.tags) { %>
+                | Tags:
+                <% post.tags.forEach(tag=> { %>
+                    <a href="/tags/<%= tag %>" style="color: var(--accent-color); text-decoration: underline;">
+                        <%= tag %>
+                    </a>
+                    <% }) %>
+                        <% } %>
+        </div>
+
+        <div>
+            <%- post.htmlContent %>
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/">&larr; Back to Home</a>
+    </div>
+
+    <%- include('partials/footer') %>

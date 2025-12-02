@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+
+    <div class="about-box">
+        <p>Hello, I'm Khang - A cybersecurity fresher. I'm heading to be an IT Security Officer and then Cyber Security
+            Consultant. Welcome to Dulkanggg's Corner, my personal website full of interesting news, articles, tutorials
+            and links. All about IT, related topics and those that interest me.</p>
+        <div class="social-links" style="margin-top: 10px;">
+            <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+            <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+            <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+        </div>
+    </div>
+
+    <section>
+        <h2 style="color: #e2b714; border-bottom: none;">Latest posts</h2>
+        <ul class="post-list">
+            <% posts.forEach(post=> { %>
+                <li class="post-item">
+                    <span class="post-date">
+                        <%= post.date %>
+                    </span>
+                    <span class="post-title"><a href="/post/<%= post.slug %>">
+                            <%= post.title %>
+                        </a></span>
+                </li>
+                <% }); %>
+                    <% if (posts.length===0) { %>
+                        <li>No posts found.</li>
+                        <% } %>
+        </ul>
+    </section>
+
+    <%- include('partials/footer') %>
