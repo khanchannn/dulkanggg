@@ -1,8 +1,9 @@
 :root {
     --bg-color: #0a192f;
-    /* Dark Navy */
     --text-color: #c9d1d9;
+    /* --- THAY ĐỔI Ở ĐÂY: Matrix Green --- */
     --link-color: #00ff41;
+    /* ------------------------------------ */
     --accent-color: #8b949e;
     --border-color: #30363d;
     --header-bg: #112240;
@@ -50,6 +51,7 @@ nav a {
 
 nav a:hover {
     color: var(--link-color);
+    /* Sẽ nhận màu Matrix Green khi hover */
     text-decoration: underline;
 }
 
@@ -65,61 +67,84 @@ nav a:hover {
 .social-links a {
     margin-right: 15px;
     color: var(--link-color);
+    /* Sẽ nhận màu Matrix Green */
     text-decoration: none;
+}
+
+/* --- PHẦN BỔ SUNG QUAN TRỌNG CHO DANH SÁCH BÀI VIẾT --- */
+/* (Bạn cần thêm đoạn này vào nếu file chưa có để list bài viết có màu xanh) */
+
+.post-list {
+    list-style: none;
+    padding: 0;
+}
+
+.post-item {
+    display: flex;
+    margin-bottom: 15px;
+    align-items: baseline;
+}
+
+.post-date {
+    color: var(--accent-color);
+    min-width: 120px;
+    font-size: 0.9em;
+}
+
+.post-title a {
+    /* Sử dụng biến màu Matrix Green đã khai báo ở trên */
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.post-title a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 5px #00ff41;
+    /* Hiệu ứng phát sáng nhẹ khi di chuột vào */
 }
 
 /* --- Cập nhật phần Post Detail --- */
 
-/* 1. Đổi màu đề mục ### (h3) sang màu Cam Gạch */
 .post-content h3 {
     font-size: 1.25em;
     color: #d35400;
-    /* Màu cam gạch (Pumpkin/Brick) */
+    /* Màu cam gạch */
     border-bottom: none;
     margin-top: 1.5em;
     margin-bottom: 0.5em;
 }
 
-/* 2. Đổi màu chữ in đậm (** hoặc __) sang màu Xanh lá */
 .post-content strong {
     color: #2ecc71;
-    /* Màu xanh lá (Emerald) */
+    /* Màu xanh lá đậm hơn cho chữ đậm */
     font-weight: 700;
 }
 
-/* --- Cập nhật giao diện Code Block giống VS Code --- */
+/* --- Code Block --- */
 
-/* Code inline (nằm trong dòng văn bản) */
 .post-content code {
     background-color: #2d2d2d;
-    /* Nền xám đậm hơn */
     padding: 0.2em 0.4em;
     border-radius: 4px;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.85em;
     color: #ce9178;
-    /* Màu cam nhạt giống string trong VS Code */
 }
 
-/* Khối Code (Pre block) - Giống khung VS Code */
 .post-content pre {
     background-color: #1e1e1e;
-    /* Màu nền chuẩn VS Code Dark+ */
     color: #d4d4d4;
-    /* Màu chữ mặc định VS Code */
     padding: 16px;
     overflow-x: auto;
-    /* Thanh cuộn ngang nếu code dài */
     border-radius: 6px;
     border: 1px solid #333333;
-    /* Viền mỏng tối màu */
     margin-bottom: 1.5em;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     line-height: 1.5;
     tab-size: 4;
 }
 
-/* Reset màu chữ bên trong pre code để không bị đè bởi code inline */
 .post-content pre code {
     background-color: transparent;
     padding: 0;
