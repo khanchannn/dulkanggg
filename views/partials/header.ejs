@@ -7,22 +7,22 @@
     <title>
         <%= title %>
     </title>
-    <link rel="icon" href="/images/logo.png" type="image/png">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="<%= basePath %>/images/logo.png" type="image/png">
+    <link rel="stylesheet" href="<%= basePath %>/css/style.css">
 </head>
 
 <body>
     <div class="container">
         <header>
-            <a href="/" class="logo">
-                <img src="/images/logo.png" alt="Logo"
+            <a href="<%= basePath %>/" class="logo">
+                <img src="<%= basePath %>/images/logo.png" alt="Logo"
                     style="height: 40px; vertical-align: middle; margin-right: 10px;">
                 Dulkanggg's Corner
             </a>
             <nav>
-                <a href="/">Home</a>
-                <a href="/search">Search</a>
-                <a href="/about">About</a>
-                <a href="/rss">RSS</a>
+                <a href="<%= basePath %>/">Home</a>
+                <a href="<%= basePath %>/search">Search</a>
+                <a href="<%= basePath %>/about">About</a>
+                <a href="<%= basePath %>/rss">RSS</a>
             </nav>
         </header>

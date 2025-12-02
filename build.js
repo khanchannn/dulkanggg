@@ -62,7 +62,8 @@ async function build() {
     const indexHtml = ejs.render(indexTemplate, {
         posts,
         title: "Dulkanggg's Corner",
-        filename: path.join(viewsDir, 'index.ejs') // Required for include to work
+        filename: path.join(viewsDir, 'index.ejs'), // Required for include to work
+        basePath: '/dulkanggg'
     });
     fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 
@@ -78,7 +79,8 @@ async function build() {
         const postHtml = ejs.render(postTemplate, {
             post: { ...post, htmlContent },
             title: post.title,
-            filename: path.join(viewsDir, 'post.ejs')
+            filename: path.join(viewsDir, 'post.ejs'),
+            basePath: '/dulkanggg'
         });
 
         fs.writeFileSync(path.join(postDir, 'index.html'), postHtml);
