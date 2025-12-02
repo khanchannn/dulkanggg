@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Search - Dulkanggg&#39;s Corner
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <div class="search-container">
+        <h1 style="color: #e2b714;">Search</h1>
+        <input type="text" id="searchInput" placeholder="Type to search..." style="
+        width: 100%;
+        padding: 10px;
+        font-size: 1.1em;
+        background-color: var(--header-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-family: var(--font-mono);
+    ">
+
+        <ul id="searchResults" class="post-list">
+            <!-- Results will appear here -->
+        </ul>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        let posts = [];
+
+        // Fetch the search index
+        fetch('/dulkanggg/search.json')
+            .then(response => response.json())
+            .then(data => {
+                posts = data;
+            })
+            .catch(err => console.error('Error loading search index:', err));
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            searchResults.innerHTML = '';
+
+            if (query.length < 2) return;
+
+            const filteredPosts = posts.filter(post => {
+                const inTitle = post.title.toLowerCase().includes(query);
+                const inBody = post.body.toLowerCase().includes(query);
+                const inTags = post.tags && post.tags.some(tag => tag.toLowerCase().includes(query));
+                return inTitle || inBody || inTags;
+            });
+
+            if (filteredPosts.length === 0) {
+                searchResults.innerHTML = '<li>No results found.</li>';
+                return;
+            }
+
+            filteredPosts.forEach(post => {
+                const li = document.createElement('li');
+                li.className = 'post-item';
+                li.innerHTML = `
+                <span class="post-date">${post.date}</span>
+                <span class="post-title"><a href="/dulkanggg/post/${post.slug}">${post.title}</a></span>
+            `;
+                searchResults.appendChild(li);
+            });
+        });
+    </script>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
