@@ -21,8 +21,14 @@ const getPosts = () => {
     const posts = files.map(filename => {
         const content = fs.readFileSync(path.join(postsDir, filename), 'utf-8');
         const { attributes, body } = frontMatter(content);
+        const slug = filename.replace('.md', '')
+            .toLowerCase()
+            .replace(/[^a-z0-9-]/g, '-') // Replace non-alphanumeric chars with hyphens
+            .replace(/-+/g, '-')         // Replace multiple hyphens with single hyphen
+            .replace(/^-|-$/g, '');      // Trim hyphens
+
         return {
-            slug: filename.replace('.md', ''),
+            slug,
             ...attributes,
             body
         };
