@@ -68,149 +68,62 @@ nav a:hover {
     text-decoration: none;
 }
 
-/* Post List */
-.post-list {
-    list-style: none;
-    padding: 0;
-}
+/* --- Cập nhật phần Post Detail --- */
 
-.post-item {
-    display: flex;
-    margin-bottom: 15px;
-    align-items: baseline;
-}
-
-.post-date {
-    color: var(--accent-color);
-    min-width: 120px;
-    font-size: 0.9em;
-}
-
-.post-title a {
-    color: var(--link-color);
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.post-title a:hover {
-    text-decoration: underline;
-}
-
-/* Post Detail */
-.post-content {
-    margin-top: 20px;
-    font-size: 1.1em;
-}
-
-.post-content h1,
-.post-content h2,
-.post-content h3,
-.post-content h4 {
-    color: #e2b714;
-    /* Default Gold for h1, h2, h4 */
-    margin-top: 1.5em;
-    margin-bottom: 0.8em;
-    font-weight: bold;
-}
-
-.post-content h1 {
-    font-size: 2em;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 0.5em;
-}
-
-.post-content h2 {
-    font-size: 1.5em;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.3em;
-}
-
+/* 1. Đổi màu đề mục ### (h3) sang màu Cam Gạch */
 .post-content h3 {
     font-size: 1.25em;
-    color: #e67e22;
-    /* Orange Brick for ### */
+    color: #d35400;
+    /* Màu cam gạch (Pumpkin/Brick) */
     border-bottom: none;
-}
-
-.post-content p {
-    margin-bottom: 1.2em;
-    color: #d0d7de;
-}
-
-.post-content a {
-    color: #58a6ff;
-    text-decoration: underline;
-}
-
-.post-content strong {
-    color: #2ecc71;
-    /* Green for **bold** */
-    font-weight: 700;
-}
-
-.post-content ul,
-.post-content ol {
-    margin-bottom: 1.2em;
-    padding-left: 2em;
-}
-
-.post-content li {
+    margin-top: 1.5em;
     margin-bottom: 0.5em;
 }
 
-.post-content blockquote {
-    border-left: 4px solid #e2b714;
-    padding: 10px 20px;
-    margin: 20px 0;
-    background-color: rgba(226, 183, 20, 0.1);
-    color: #8b949e;
-    font-style: italic;
+/* 2. Đổi màu chữ in đậm (** hoặc __) sang màu Xanh lá */
+.post-content strong {
+    color: #2ecc71;
+    /* Màu xanh lá (Emerald) */
+    font-weight: 700;
 }
 
-/* Enhanced Code Blocks */
+/* --- Cập nhật giao diện Code Block giống VS Code --- */
+
+/* Code inline (nằm trong dòng văn bản) */
 .post-content code {
-    background-color: rgba(110, 118, 129, 0.4);
+    background-color: #2d2d2d;
+    /* Nền xám đậm hơn */
     padding: 0.2em 0.4em;
-    border-radius: 6px;
-    font-family: var(--font-mono);
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.85em;
-    color: #ff7b72;
+    color: #ce9178;
+    /* Màu cam nhạt giống string trong VS Code */
 }
 
+/* Khối Code (Pre block) - Giống khung VS Code */
 .post-content pre {
-    background-color: #112240;
+    background-color: #1e1e1e;
+    /* Màu nền chuẩn VS Code Dark+ */
+    color: #d4d4d4;
+    /* Màu chữ mặc định VS Code */
     padding: 16px;
-    overflow: auto;
+    overflow-x: auto;
+    /* Thanh cuộn ngang nếu code dài */
     border-radius: 6px;
-    border: 1px solid #30363d;
+    border: 1px solid #333333;
+    /* Viền mỏng tối màu */
     margin-bottom: 1.5em;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    line-height: 1.5;
+    tab-size: 4;
 }
 
+/* Reset màu chữ bên trong pre code để không bị đè bởi code inline */
 .post-content pre code {
     background-color: transparent;
     padding: 0;
-    color: #c9d1d9;
+    color: inherit;
     font-size: 0.9em;
     display: block;
-}
-
-/* Footer */
-footer {
-    margin-top: 60px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-    text-align: center;
-    color: var(--accent-color);
-    font-size: 0.8em;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .post-item {
-        flex-direction: column;
-    }
-
-    .post-date {
-        margin-bottom: 5px;
-    }
 }

@@ -174,12 +174,12 @@ Trước khi đi vào script, điểm qua xem chúng ta sẽ cài những gì v�
 * **htop:** Xem tài nguyên máy (RAM/CPU) sướng hơn lệnh `top` mặc định nhiều.
 * **unzip & net-tools:** Giải nén file và check IP/Port (`ifconfig`, `netstat`).
 
-**2. Nhóm Vệ sĩ (Security)
+**2. Nhóm Vệ sĩ (Security)**
 
 * **ufw:** Tường lửa đơn giản nhất quả đất. Đóng hết các cửa, chỉ mở cửa cho mình vào thôi.
 * **fail2ban:** Thằng này cực hay. Nó sẽ canh cửa SSH, ai gõ sai mật khẩu nhiều lần là nó chặn (ban) IP đó luôn. Chống dò mật khẩu cực tốt.
 
-**3. Nhóm Vận hành (Engine Room)
+**3. Nhóm Vận hành (Engine Room)**
 
 * **nginx:** Web server nhẹ, làm Reverse Proxy cực mượt.
 * **docker & docker-compose:** Giờ là thời đại của Container rồi. Cài database, redis hay app thì cứ đóng vào Docker cho sạch máy, đỡ xung đột thư viện.
