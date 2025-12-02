@@ -87,6 +87,27 @@ async function build() {
         fs.writeFileSync(path.join(postDir, 'index.html'), postHtml);
     });
 
+    // 4. Build Search Page & Index
+    console.log('Building Search page & Index...');
+    const searchTemplate = fs.readFileSync(path.join(viewsDir, 'search.ejs'), 'utf-8');
+    const searchHtml = ejs.render(searchTemplate, {
+        title: "Search - Dulkanggg's Corner",
+        filename: path.join(viewsDir, 'search.ejs'),
+        basePath: '/dulkanggg'
+    });
+    fs.writeFileSync(path.join(distDir, 'search.html'), searchHtml);
+
+    // Create search.json
+    // We strip markdown to keep the file size reasonable if needed, but for now raw body is okay or just strip it slightly
+    const searchIndex = posts.map(post => ({
+        title: post.title,
+        slug: post.slug,
+        date: post.date,
+        tags: post.tags,
+        body: post.body // Include full body for full-text search
+    }));
+    fs.writeFileSync(path.join(distDir, 'search.json'), JSON.stringify(searchIndex));
+
     console.log('Build complete! Output in dist/');
 }
 
