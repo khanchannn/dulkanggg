@@ -126,7 +126,7 @@ nav a:hover {
 .post-content a {
     color: var(--link-color);
     text-decoration: none;
-    font-family: 'Fira Code', monospace;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 .post-content a:hover {
