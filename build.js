@@ -97,6 +97,16 @@ async function build() {
     });
     fs.writeFileSync(path.join(distDir, 'search.html'), searchHtml);
 
+    // 5. Build About Page
+    console.log('Building About page...');
+    const aboutTemplate = fs.readFileSync(path.join(viewsDir, 'about.ejs'), 'utf-8');
+    const aboutHtml = ejs.render(aboutTemplate, {
+        title: "About - Dulkanggg's Corner",
+        filename: path.join(viewsDir, 'about.ejs'),
+        basePath: '/dulkanggg'
+    });
+    fs.writeFileSync(path.join(distDir, 'about.html'), aboutHtml);
+
     // Create search.json
     // We strip markdown to keep the file size reasonable if needed, but for now raw body is okay or just strip it slightly
     const searchIndex = posts.map(post => ({
