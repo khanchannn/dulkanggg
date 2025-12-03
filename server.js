@@ -39,6 +39,11 @@ app.get('/', (req, res) => {
     res.render('index', { posts, title: "Dulkanggg's Corner", basePath: '' });
 });
 
+// About
+app.get('/about', (req, res) => {
+    res.render('about', { title: "About Me - Dulkanggg's Corner", basePath: '' });
+});
+
 // Post Detail
 app.get('/post/:slug', (req, res) => {
     const posts = getPosts();
