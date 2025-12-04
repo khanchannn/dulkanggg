@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        PortSentry: Detecting and Blocking Port Scans
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            PortSentry: Detecting and Blocking Port Scans
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-03
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/ubuntu"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ubuntu
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/vps"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        vps
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/security"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        security
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/network"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        network
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>PortSentry: Detecting and Blocking Port Scans</h3>
+<p>PortSentry is a classic Intrusion Detection System (IDS) specialized in monitoring and preventing port scanning activities on servers. Although active development has ceased, it remains an excellent lesson in active defense mechanisms for anyone working in system security.</p>
+<p>This article will guide you through cross-platform installation and detailed configuration ranging from basic to &quot;paranoid.&quot;</p>
+<h3>1. Installing PortSentry on Various Distros</h3>
+<p>Depending on your operating system, choose the appropriate installation method:</p>
+<p><strong>Debian/Ubuntu/Kali Linux:</strong> Install directly from the official repositories:</p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get install portsentry
+</code></pre>
+<p><strong>Fedora/CentOS/RHEL:</strong> Typically, you will need to download the RPM package. Then use the command:</p>
+<pre><code class="language-bash">rpm -i portsentry*
+</code></pre>
+<p>(Note: If the RPM package is not found, you may need to compile from source or search within the EPEL repository).</p>
+<p><strong>Arch Linux:</strong> Use the AUR (Arch User Repository). The old command was <code>yaourt</code>, but nowadays you can use <code>yay</code> or <code>paru</code>:</p>
+<pre><code class="language-bash">yaourt -S portsentry
+# Or
+yay -S portsentry
+</code></pre>
+<h3>2. Configuring Monitoring Tactics</h3>
+<p>The main configuration file is located at <code>/etc/portsentry/portsentry.conf</code>. We will open it to edit:</p>
+<pre><code class="language-bash">sudo nano /etc/portsentry/portsentry.conf
+</code></pre>
+<h4>A. Selecting Port Monitoring Sets (Port Configuration)</h4>
+<p>PortSentry provides 3 pre-set monitoring levels. You need to uncomment (#) one of the following sets depending on your security &quot;sensitivity&quot;:</p>
+<p><strong>Level 1: &quot;Really Anal&quot; (Paranoid/Strict)</strong>
+Select this set if you want to monitor almost all sensitive ports. Anyone touching them will be dealt with. This is the recommended choice.</p>
+<pre><code class="language-bash"># Un-comment these if you are really anal:
+TCP_PORTS=&quot;1,7,9,11,15,70,79,80,109,110,111,119,138,139,143,512,513,514,515,540,635,1080,1524,2000,2001,4000,4001,5742,6000,6001,6667,12345,12346,20034,30303,32771,32772,32773,32774,31337,40421,40425,49724,54320&quot;
+UDP_PORTS=&quot;1,7,9,66,67,68,69,111,137,138,161,162,474,513,517,518,635,640,641,666,700,2049,32770,32771,32772,32773,32774,31337,54321&quot;
+</code></pre>
+<p><strong>Level 2: &quot;Aware&quot;</strong>
+Monitors common ports, balancing security and performance.</p>
+<pre><code class="language-bash"># Use these if you just want to be aware:
+# TCP_PORTS=&quot;1,11,15,79,111,119,143,540,635,1080,1524,2000,5742,6667,12345,12346,20034,31337,32771,32772,32773,32774,40421,49724,54320&quot;
+# UDP_PORTS=&quot;1,7,9,69,161,162,513,635,640,641,700,32770,32771,32772,32773,32774,31337,54321&quot;
+</code></pre>
+<p><strong>Level 3: &quot;Bare-bones&quot; (Basic)</strong>
+Minimal monitoring. Not recommended unless the server is extremely underpowered.</p>
+<h4>B. Configuring Stealth Scan</h4>
+<p>In addition to the ports above, you can configure monitoring for high port ranges (above 1024) to detect stealth scanning techniques.</p>
+<pre><code class="language-bash">ADVANCED_PORTS_TCP=&quot;1023&quot;
+ADVANCED_PORTS_UDP=&quot;1023&quot;
+</code></pre>
+<p>Crucially, make sure to exclude ports that you are actually using (e.g., Web, DNS, NetBIOS ports) to avoid blocking valid users:</p>
+<pre><code class="language-bash">ADVANCED_EXCLUDE_TCP=&quot;113,139&quot;
+ADVANCED_EXCLUDE_UDP=&quot;520,138,137,67&quot;
+</code></pre>
+<h3>3. Configuring Response and Blocking</h3>
+<p>What should PortSentry do when an attack is detected?</p>
+<p><strong>Activate Blocking Mode</strong>
+Ensure the following two lines are set to 1 (1 = Block, 0 = Log only, 2 = Run external command):</p>
+<pre><code class="language-bash">BLOCK_UDP=&quot;1&quot;
+BLOCK_TCP=&quot;1&quot;
+</code></pre>
+<p><strong>Blocking Method: TCP Wrappers</strong>
+A classic but effective blocking method is using <code>hosts.deny</code>. When an attacking IP is detected, PortSentry writes that IP to <code>/etc/hosts.deny</code>, causing services that support TCP Wrappers (like older SSH configs) to reject connections immediately.</p>
+<p>Find and uncomment this line:</p>
+<pre><code class="language-bash">KILL_HOSTS_DENY=&quot;ALL: $TARGET$ : DENY&quot;
+</code></pre>
+<p>(Note: <code>$TARGET$</code> is the variable representing the attacker&#39;s IP).</p>
+<p><strong>Log Files and History</strong>
+Check the log file paths to ensure PortSentry records data in the correct location (Note: paths may vary by distro, e.g., <code>/etc/portsentry/...</code> or <code>/usr/pkg/etc/...</code>):</p>
+<pre><code class="language-bash"># Hosts to ignore (Whitelist)
+IGNORE_FILE=&quot;/etc/portsentry/portsentry.ignore&quot;
+# Hosts that have been denied (Blocking History)
+HISTORY_FILE=&quot;/etc/portsentry/portsentry.history&quot;
+# Hosts blocked in this session (Current Session)
+BLOCKED_FILE=&quot;/etc/portsentry/portsentry.blocked&quot;
+</code></pre>
+<h3>4. Psychological Tactics: Port Banner</h3>
+<p>You can leave a message for the attacker if they intentionally connect to trap ports. This is an interesting feature to serve as a warning.</p>
+<pre><code class="language-bash">PORT_BANNER=&quot;** UNAUTHORIZED ACCESS PROHIBITED *** YOUR CONNECTION ATTEMPT HAS BEEN LOGGED. GO AWAY.&quot;
+</code></pre>
+<h3>5. The Most Important Step: Whitelist (Ignore File)</h3>
+<p>Do not lock yourself out! Before starting, you absolutely must add your own IP and the local IP to the ignore list.</p>
+<p>Open the <code>portsentry.ignore</code> file (path configured in step 3):</p>
+<pre><code class="language-bash">sudo nano /etc/portsentry/portsentry.ignore
+</code></pre>
+<p>Add the following:</p>
+<pre><code class="language-plaintext">127.0.0.1/32
+0.0.0.0
+[Your Machine&#39;s IP]
+[Gateway IP]
+</code></pre>
+<h3>6. Start and Verify</h3>
+<p>After completion, restart the service:</p>
+<pre><code class="language-bash">sudo service portsentry restart
+</code></pre>
+<p>To verify, use another machine to run a simple nmap scan against the server. Then check the <code>/etc/hosts.deny</code> file on the server; you should see the attacking machine&#39;s IP added to the blacklist along with the warning line.</p>
+<h3>Advanced: Sending Email Alerts When Attacks are Detected</h3>
+<p>Receiving real-time notifications is a core part of DevSecOps and cybersecurity monitoring.</p>
+<p>Below is a detailed guide on how to write a simple Shell script to send emails and integrate it into PortSentry&#39;s <code>KILL_RUN_CMD</code>.</p>
+<h4>1. Prepare the Email Environment</h4>
+<p>To allow the Linux server to send emails, you need to install the <code>mailutils</code> package (on Debian/Ubuntu) or <code>mailx</code> (on CentOS).</p>
+<p><strong>Ubuntu/Debian:</strong></p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get install mailutils
+</code></pre>
+<p>(During installation, if asked to configure Postfix, you can select &quot;Internet Site&quot; if the server has a domain, or &quot;Local only&quot; for internal testing. However, to send to actual Gmail/Outlook, the server needs SMTP Relay configuration, but let&#39;s proceed with creating the script first).</p>
+<h4>2. Write the Alert Script (portsentry_alert.sh)</h4>
+<p>We will write a script that accepts the Attacker&#39;s IP and the Scanned Port as parameters, then composes and sends an email.</p>
+<p>Create the script file:</p>
+<pre><code class="language-bash">sudo nano /usr/local/bin/portsentry_alert.sh
+</code></pre>
+<p>Paste the following content:</p>
+<pre><code class="language-bash">#!/bin/bash
+
+# ==========================================
+# CONFIGURATION
+# ==========================================
+TO_EMAIL=&quot;admin@unitrade.id.vn&quot;  # Replace with your email
+SUBJECT=&quot;[ALERT] PortSentry Detected Attack!&quot;
+SERVER_NAME=$(hostname)
+DATE=$(date &quot;+%Y-%m-%d %H:%M:%S&quot;)
+
+# Receive parameters from PortSentry
+TARGET_IP=$1
+TARGET_PORT=$2
+
+# ==========================================
+# EMAIL CONTENT
+# ==========================================
+BODY=&quot;
+Security Alert from Server: $SERVER_NAME
+------------------------------------------------
+Detection Time      : $DATE
+Action Taken        : Blocked
+Attacker IP         : $TARGET_IP
+Scanned Port        : $TARGET_PORT
+------------------------------------------------
+System has automatically added a rule to iptables/hosts.deny.
+Please check logs at /var/log/syslog for more details.
+&quot;
+
+# ==========================================
+# SEND MAIL
+# ==========================================
+echo &quot;$BODY&quot; | mail -s &quot;$SUBJECT&quot; &quot;$TO_EMAIL&quot;
+</code></pre>
+<p>Grant execution permissions to the script:</p>
+<pre><code class="language-bash">sudo chmod +x /usr/local/bin/portsentry_alert.sh
+</code></pre>
+<h4>3. Integrate Script into PortSentry</h4>
+<p>Now we go back to the PortSentry configuration file to &quot;teach&quot; it how to call this script when an attack is detected.</p>
+<p>Open the config file:</p>
+<pre><code class="language-bash">sudo nano /etc/portsentry/portsentry.conf
+</code></pre>
+<p>Find the <code>KILL_RUN_CMD</code> line. This line allows running an external command before blocking the IP. Edit it as follows:</p>
+<pre><code class="language-bash"># $TARGET$ is the variable containing the IP, $PORT$ is the variable containing the port
+KILL_RUN_CMD=&quot;/usr/local/bin/portsentry_alert.sh $TARGET$ $PORT$&quot;
+</code></pre>
+<p><strong>Important Note:</strong> Ensure <code>BLOCK_UDP</code> and <code>BLOCK_TCP</code> variables are in mode 1 (Block) or 2 (Run Command Only) for the above command to execute. It is best to leave it at 1 to both block and send the email.</p>
+<h4>4. Restart and Test</h4>
+<p>Restart PortSentry:</p>
+<pre><code class="language-bash">sudo service portsentry restart
+</code></pre>
+<p><strong>Attack Simulation:</strong> Use another machine (or a phone using 4G - to have a different IP than the LAN) to scan:</p>
+<pre><code class="language-bash">nmap -p 1-100 &lt;Your_Server_IP&gt;
+</code></pre>
+<p>If successful, you will receive an email with the content: <code>Subject: [ALERT] PortSentry Detected Attack! Body: Security Alert... Attacker IP: 1.2.3.4.</code></p>
+<hr>
+<h3>Hướng dẫn toàn tập về PortSentry: Phát hiện và Chặn đứng Port Scan</h3>
+<p>PortSentry là một công cụ phát hiện xâm nhập (IDS) kinh điển, chuyên dùng để giám sát và ngăn chặn các hành vi quét cổng (port scanning) trên máy chủ. Dù công cụ này đã ngừng phát triển, nó vẫn là một bài học tuyệt vời về cơ chế phòng thủ chủ động cho bất kỳ ai làm về bảo mật hệ thống.</p>
+<p>Bài viết này sẽ hướng dẫn bạn cài đặt trên đa nền tảng và cấu hình chi tiết từ cơ bản đến &quot;paranoid&quot; (cực đoan).</p>
+<h3>1. Cài đặt PortSentry trên các Distro</h3>
+<p>Tùy vào hệ điều hành bạn đang sử dụng, hãy chọn phương pháp cài đặt phù hợp:</p>
+<p><strong>Debian/Ubuntu/Kali Linux:</strong> Cài đặt trực tiếp từ kho lưu trữ chính thức:</p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get install portsentry
+</code></pre>
+<p><strong>Fedora/CentOS/RHEL:</strong> Thông thường bạn sẽ cần tải gói RPM về máy. Sau đó sử dụng lệnh:</p>
+<pre><code class="language-bash">rpm -i portsentry*
+</code></pre>
+<p>(Lưu ý: Nếu không tìm thấy gói RPM, bạn có thể cần biên dịch từ mã nguồn hoặc tìm trong kho EPEL).</p>
+<p><strong>Arch Linux:</strong> Sử dụng AUR (Arch User Repository). Lệnh cũ là <code>yaourt</code>, nhưng hiện nay bạn có thể dùng <code>yay</code> hoặc <code>paru</code>:</p>
+<pre><code class="language-bash">yaourt -S portsentry
+# Hoặc
+yay -S portsentry
+</code></pre>
+<h3>2. Cấu hình Chiến thuật Giám sát</h3>
+<p>File cấu hình chính nằm tại <code>/etc/portsentry/portsentry.conf</code>. Chúng ta sẽ mở nó lên và chỉnh sửa:</p>
+<pre><code class="language-bash">sudo nano /etc/portsentry/portsentry.conf
+</code></pre>
+<h4>A. Lựa chọn bộ cổng giám sát (Port Configuration)</h4>
+<p>PortSentry cung cấp sẵn 3 cấp độ giám sát. Bạn cần bỏ dấu comment (#) ở một trong các bộ sau tùy theo mức độ &quot;nhạy cảm&quot; về bảo mật của bạn:</p>
+<p><strong>Cấp độ 1: &quot;Really Anal&quot; (Cực đoan/Kỹ tính)</strong>
+Chọn bộ này nếu bạn muốn giám sát gần như tất cả các cổng nhạy cảm. Bất kỳ ai chạm vào đều sẽ bị xử lý. Đây là lựa chọn tôi khuyên dùng.</p>
+<pre><code class="language-bash"># Un-comment these if you are really anal:
+TCP_PORTS=&quot;1,7,9,11,15,70,79,80,109,110,111,119,138,139,143,512,513,514,515,540,635,1080,1524,2000,2001,4000,4001,5742,6000,6001,6667,12345,12346,20034,30303,32771,32772,32773,32774,31337,40421,40425,49724,54320&quot;
+UDP_PORTS=&quot;1,7,9,66,67,68,69,111,137,138,161,162,474,513,517,518,635,640,641,666,700,2049,32770,32771,32772,32773,32774,31337,54321&quot;
+</code></pre>
+<p><strong>Cấp độ 2: &quot;Aware&quot; (Cảnh giác)</strong>
+Giám sát các cổng phổ biến, cân bằng giữa bảo mật và hiệu năng.</p>
+<pre><code class="language-bash"># Use these if you just want to be aware:
+# TCP_PORTS=&quot;1,11,15,79,111,119,143,540,635,1080,1524,2000,5742,6667,12345,12346,20034,31337,32771,32772,32773,32774,40421,49724,54320&quot;
+# UDP_PORTS=&quot;1,7,9,69,161,162,513,635,640,641,700,32770,32771,32772,32773,32774,31337,54321&quot;
+</code></pre>
+<p><strong>Cấp độ 3: &quot;Bare-bones&quot; (Cơ bản)</strong>
+Chỉ giám sát tối thiểu. Không khuyến khích dùng trừ khi server quá yếu.</p>
+<h4>B. Cấu hình Stealth Scan (Quét ẩn)</h4>
+<p>Ngoài các cổng trên, bạn có thể cấu hình giám sát dải cổng cao (trên 1024) để phát hiện các kỹ thuật quét lén lút.</p>
+<pre><code class="language-bash">ADVANCED_PORTS_TCP=&quot;1023&quot;
+ADVANCED_PORTS_UDP=&quot;1023&quot;
+</code></pre>
+<p>Đặc biệt, hãy loại trừ (exclude) các cổng mà bạn đang thực sự sử dụng (ví dụ cổng Web, DNS, NetBIOS) để tránh chặn nhầm người dùng hợp lệ:</p>
+<pre><code class="language-bash">ADVANCED_EXCLUDE_TCP=&quot;113,139&quot;
+ADVANCED_EXCLUDE_UDP=&quot;520,138,137,67&quot;
+</code></pre>
+<h3>3. Cấu hình Phản ứng và Chặn (Blocking)</h3>
+<p>Khi phát hiện tấn công, PortSentry sẽ làm gì?</p>
+<p><strong>Kích hoạt chế độ chặn</strong>
+Đảm bảo hai dòng sau được đặt giá trị 1 (1 = Chặn, 0 = Chỉ ghi log, 2 = Chạy lệnh ngoài):</p>
+<pre><code class="language-bash">BLOCK_UDP=&quot;1&quot;
+BLOCK_TCP=&quot;1&quot;
+</code></pre>
+<p><strong>Phương pháp chặn: TCP Wrappers</strong>
+Một phương pháp chặn cổ điển nhưng hiệu quả là sử dụng <code>hosts.deny</code>. Khi phát hiện IP tấn công, PortSentry sẽ ghi IP đó vào file <code>/etc/hosts.deny</code>, làm cho các dịch vụ hỗ trợ TCP Wrappers (như SSH cũ) từ chối kết nối ngay lập tức.</p>
+<p>Tìm và bỏ comment dòng này:</p>
+<pre><code class="language-bash">KILL_HOSTS_DENY=&quot;ALL: $TARGET$ : DENY&quot;
+</code></pre>
+<p>(Lưu ý: <code>$TARGET$</code> là biến đại diện cho IP của kẻ tấn công).</p>
+<p><strong>File Log và Lịch sử</strong>
+Kiểm tra đường dẫn file log để đảm bảo PortSentry ghi dữ liệu đúng chỗ (Lưu ý đường dẫn có thể khác nhau tùy distro, ví dụ <code>/etc/portsentry/...</code> hoặc <code>/usr/pkg/etc/...</code>):</p>
+<pre><code class="language-bash"># Hosts to ignore (Danh sách trắng)
+IGNORE_FILE=&quot;/etc/portsentry/portsentry.ignore&quot;
+# Hosts that have been denied (Lịch sử chặn)
+HISTORY_FILE=&quot;/etc/portsentry/portsentry.history&quot;
+# Hosts blocked in this session (Phiên hiện tại)
+BLOCKED_FILE=&quot;/etc/portsentry/portsentry.blocked&quot;
+</code></pre>
+<h3>4. &quot;Đòn tâm lý&quot;: Port Banner</h3>
+<p>Bạn có thể để lại một lời nhắn cho kẻ tấn công nếu chúng cố tình kết nối vào các cổng bẫy. Đây là một tính năng thú vị để cảnh báo.</p>
+<pre><code class="language-bash">PORT_BANNER=&quot;** UNAUTHORIZED ACCESS PROHIBITED *** YOUR CONNECTION ATTEMPT HAS BEEN LOGGED. GO AWAY.&quot;
+</code></pre>
+<h3>5. Bước quan trọng nhất: Whitelist (Ignore File)</h3>
+<p>Đừng tự nhốt mình ở ngoài! Trước khi khởi động, bạn bắt buộc phải thêm IP của chính mình và IP local vào danh sách bỏ qua.</p>
+<p>Mở file <code>portsentry.ignore</code> (đường dẫn đã cấu hình ở bước 3):</p>
+<pre><code class="language-bash">sudo nano /etc/portsentry/portsentry.ignore
+</code></pre>
+<p>Thêm vào:</p>
+<pre><code class="language-plaintext">127.0.0.1/32
+0.0.0.0
+[IP Của Máy Bạn]
+[IP Gateway]
+</code></pre>
+<h3>6. Khởi động và Kiểm tra</h3>
+<p>Sau khi hoàn tất, khởi động lại dịch vụ:</p>
+<pre><code class="language-bash">sudo service portsentry restart
+</code></pre>
+<p>Để kiểm tra, hãy dùng một máy khác thực hiện lệnh nmap đơn giản vào server. Sau đó kiểm tra file <code>/etc/hosts.deny</code> trên server, bạn sẽ thấy IP của máy tấn công đã bị thêm vào danh sách đen kèm theo dòng cảnh báo.</p>
+<h3>Nâng cao: Gửi Email Cảnh Báo Khi Phát Hiện Tấn Công với PortSentry</h3>
+<p>Việc nhận thông báo ngay lập tức (Real-time Notification) là một phần cốt lõi của DevSecOps và giám sát an ninh mạng.</p>
+<p>Dưới đây là hướng dẫn chi tiết cách viết một script Shell đơn giản để gửi email và tích hợp nó vào <code>KILL_RUN_CMD</code> của PortSentry.</p>
+<h4>1. Chuẩn bị môi trường gửi mail</h4>
+<p>Để server Linux gửi được email, bạn cần cài đặt gói <code>mailutils</code> (trên Debian/Ubuntu) hoặc <code>mailx</code> (trên CentOS).</p>
+<p><strong>Ubuntu/Debian:</strong></p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get install mailutils
+</code></pre>
+<p>(Trong quá trình cài đặt, nếu nó hỏi cấu hình Postfix, bạn có thể chọn &quot;Internet Site&quot; nếu server có domain, hoặc &quot;Local only&quot; nếu chỉ test nội bộ. Tuy nhiên, để gửi ra Gmail/Outlook thực tế, server cần cấu hình SMTP Relay, nhưng ta cứ đi qua bước tạo script trước).</p>
+<h4>2. Viết Script Cảnh Báo (portsentry_alert.sh)</h4>
+<p>Chúng ta sẽ viết một script nhận tham số là IP kẻ tấn công và Cổng bị quét, sau đó soạn nội dung và gửi mail.</p>
+<p>Tạo file script:</p>
+<pre><code class="language-bash">sudo nano /usr/local/bin/portsentry_alert.sh
+</code></pre>
+<p>Dán nội dung sau vào:</p>
+<pre><code class="language-bash">#!/bin/bash
+
+# ==========================================
+# CẤU HÌNH
+# ==========================================
+TO_EMAIL=&quot;admin@unitrade.id.vn&quot;  # Thay bằng email của bạn
+SUBJECT=&quot;[ALERT] PortSentry Detected Attack!&quot;
+SERVER_NAME=$(hostname)
+DATE=$(date &quot;+%Y-%m-%d %H:%M:%S&quot;)
+
+# Nhận tham số từ PortSentry
+TARGET_IP=$1
+TARGET_PORT=$2
+
+# ==========================================
+# NỘI DUNG EMAIL
+# ==========================================
+BODY=&quot;
+Cảnh báo bảo mật từ Server: $SERVER_NAME
+------------------------------------------------
+Thời gian phát hiện : $DATE
+Hành động           : Đã chặn (Blocked)
+IP Kẻ tấn công      : $TARGET_IP
+Cổng bị quét        : $TARGET_PORT
+------------------------------------------------
+Hệ thống đã tự động thêm rule vào iptables/hosts.deny.
+Vui lòng kiểm tra log tại /var/log/syslog để biết thêm chi tiết.
+&quot;
+
+# ==========================================
+# GỬI MAIL
+# ==========================================
+echo &quot;$BODY&quot; | mail -s &quot;$SUBJECT&quot; &quot;$TO_EMAIL&quot;
+</code></pre>
+<p>Cấp quyền thực thi cho script:</p>
+<pre><code class="language-bash">sudo chmod +x /usr/local/bin/portsentry_alert.sh
+</code></pre>
+<h4>3. Tích hợp Script vào PortSentry</h4>
+<p>Bây giờ chúng ta quay lại file cấu hình của PortSentry để &quot;dạy&quot; nó cách gọi script này khi phát hiện tấn công.</p>
+<p>Mở file config:</p>
+<pre><code class="language-bash">sudo nano /etc/portsentry/portsentry.conf
+</code></pre>
+<p>Tìm dòng <code>KILL_RUN_CMD</code>. Dòng này cho phép chạy một lệnh ngoài (external command) trước khi chặn IP. Sửa lại như sau:</p>
+<pre><code class="language-bash"># $TARGET$ là biến chứa IP, $PORT$ là biến chứa cổng
+KILL_RUN_CMD=&quot;/usr/local/bin/portsentry_alert.sh $TARGET$ $PORT$&quot;
+</code></pre>
+<p>Lưu ý quan trọng: Đảm bảo biến <code>BLOCK_UDP</code> và <code>BLOCK_TCP</code> ở chế độ 1 (Block) hoặc 2 (Run Command Only) thì lệnh trên mới được thực thi. Tốt nhất là để 1 để vừa chặn vừa gửi mail.</p>
+<h4>4. Khởi động lại và Test</h4>
+<p>Restart PortSentry:</p>
+<pre><code class="language-bash">sudo service portsentry restart
+</code></pre>
+<p>Thử nghiệm (Attack Simulation): Sử dụng máy khác (hoặc điện thoại dùng 4G - để khác IP mạng Lan) quét thử:</p>
+<pre><code class="language-bash">nmap -p 1-100 &lt;IP_Server_Cua_Ban&gt;
+</code></pre>
+<p>Nếu thành công, bạn sẽ nhận được một email với nội dung:
+<code>Subject: [ALERT] PortSentry Detected Attack! Body: Cảnh báo bảo mật... IP Kẻ tấn công: 1.2.3.4.</code></p>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
