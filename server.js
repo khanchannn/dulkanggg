@@ -62,15 +62,22 @@ app.get('/tags/:tag', (req, res) => {
     res.render('index', { posts: filteredPosts, title: `Tag: ${tag}`, basePath: '' });
 });
 
-// Search (Simple implementation)
-app.get('/search', (req, res) => {
-    const query = req.query.q ? req.query.q.toLowerCase() : '';
+// Search Page (Static style)
+app.get('/search.html', (req, res) => {
+    res.render('search', { title: "Search - Dulkanggg's Corner", basePath: '' });
+});
+
+// Search Index JSON
+app.get('/search.json', (req, res) => {
     const posts = getPosts();
-    const filteredPosts = posts.filter(p =>
-        p.title.toLowerCase().includes(query) ||
-        p.body.toLowerCase().includes(query)
-    );
-    res.render('index', { posts: filteredPosts, title: `Search: ${query}` });
+    const searchIndex = posts.map(post => ({
+        title: post.title,
+        slug: post.slug,
+        date: post.date,
+        tags: post.tags,
+        body: post.body
+    }));
+    res.json(searchIndex);
 });
 
 // Start server
