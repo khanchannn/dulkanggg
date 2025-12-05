@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                
+            </span>
+            
+        </div>
+
+        <div>
+            <pre><code>---
+title: &quot;PowerShell Commands for Windows Server Admins&quot;
+date: &quot;2025-12-04&quot;
+tags: [&quot;windows&quot;, &quot;server&quot;, &quot;automation&quot;,&quot;bilingual&quot;]
+---
+
+&gt; *🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).*
+
+---
+
+### Essential PowerShell &quot;Lifesaver&quot; Commands for Windows Server Admins
+
+Hello everyone. Today, I’d like to share and expand on a list of extremely useful PowerShell commands. Why use PowerShell on Windows Server? Because when you are managing dozens or hundreds of servers, clicking through individual GUI windows is impossible and incredibly slow. PowerShell allows you to operate quickly, accurately, and makes automation easy.
+
+Below is a compiled list that includes both basic file operations and advanced system administration commands.
+
+### 1. File System &amp; Storage Management
+
+**Calculate folder size instantly**
+
+On a Server, right-clicking Properties to check the size of a log folder or user profile can take forever. Use this command to calculate it immediately:
+
+```powershell
+&quot;{0:N2} GB&quot; -f ((Get-ChildItem C:\inetpub\logs\ -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1GB)
+</code></pre>
+<p>(This command recursively calculates the total size and converts it to GB, which is very handy for checking which folders are consuming your disk space).</p>
+<p><strong>Search content in files (&quot;Grep&quot; for Windows)</strong></p>
+<p>Need to find a specific error log or a misconfiguration hidden in dozens of text files? Don’t open them one by one.</p>
+<pre><code class="language-powershell">Select-String -Path C:\Windows\System32\LogFiles\*.log -Pattern &quot;Error 500&quot;
+</code></pre>
+<h3>2. Service and Process Management</h3>
+<p>This is a daily task for any admin. Instead of opening services.msc or Task Manager, you can do it much faster here.</p>
+<p><strong>Check and Restart a stuck Service</strong></p>
+<p>Example: The Web Server (IIS) service is unresponsive.</p>
+<pre><code class="language-powershell"># Check status
+Get-Service -Name W3SVC
+
+# Restart immediately
+Restart-Service -Name W3SVC -Force
+</code></pre>
+<p><strong>Find and &quot;Kill&quot; stubborn processes</strong></p>
+<p>Is an application eating up too much RAM and refusing to close?</p>
+<pre><code class="language-powershell"># Find process by name
+Get-Process -Name &quot;notepad&quot;
+
+# Force stop the process (Equivalent to End Task)
+Stop-Process -Name &quot;notepad&quot; -Force
+</code></pre>
+<h3>3. Network &amp; Connectivity Checks</h3>
+<p>On Windows Server, network debugging is critical. The ping command isn&#39;t enough because it doesn&#39;t check specific ports.</p>
+<p><strong>Check Ports (Telnet Alternative)</strong></p>
+<p>The Test-NetConnection command (alias: tnc) is the most powerful tool to check if your Server can reach a Database or another Web Server.</p>
+<pre><code class="language-powershell"># Check if the server 192.168.1.10 has port 80 open
+Test-NetConnection -ComputerName 192.168.1.10 -Port 80
+</code></pre>
+<p><strong>View IP information cleanly</strong></p>
+<p>Instead of ipconfig /all which outputs too much text, this command gives a cleaner view of your Interfaces:</p>
+<pre><code class="language-powershell">Get-NetIPAddress | Format-Table InterfaceAlias, IPAddress, PrefixLength
+</code></pre>
+<h3>4. System Event Logs</h3>
+<p>Reading Event Viewer with the naked eye is exhausting. Filter it using PowerShell instead.</p>
+<p><strong>Get the 10 most recent system errors</strong></p>
+<p>This helps you quickly grasp the server&#39;s health status immediately after logging in.</p>
+<pre><code class="language-powershell">Get-EventLog -LogName System -EntryType Error -Newest 10
+</code></pre>
+<h3>5. Remote Management</h3>
+<p>This is the &quot;ultimate weapon&quot; of Windows Server. You don&#39;t need to Remote Desktop (RDP) into a server just to run a few commands.</p>
+<p><strong>Connect directly to another Server&#39;s session</strong></p>
+<p>This feature is called PowerShell Remoting (PSSession).</p>
+<pre><code class="language-powershell"># Open a session to Server01
+Enter-PSSession -ComputerName Server01 -Credential (Get-Credential)
+</code></pre>
+<p>After running this, your command prompt will change to <code>[Server01]: PS C:\&gt;</code>, meaning every command you type is now running on the remote machine.</p>
+<h3>6. Updates &amp; Security</h3>
+<p><strong>Check installed HotFixes</strong></p>
+<p>Essential for verifying if your Server has been patched with the latest security updates.</p>
+<pre><code class="language-powershell">Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10
+</code></pre>
+<p><strong>Run as Admin for a specific application</strong></p>
+<p>Similar to the runas command, but this is how you handle it in an object-oriented environment:</p>
+<pre><code class="language-powershell">Start-Process powershell -Verb RunAs
+</code></pre>
+<h3>Quick Tip: Save as a Script</h3>
+<p>If you frequently run a sequence of commands (e.g., Stop service -&gt; Delete logs -&gt; Start service), save them into a <code>.ps1</code> file.</p>
+<p>Don&#39;t forget to check the Execution Policy as mentioned in previous posts:</p>
+<pre><code class="language-powershell">Set-ExecutionPolicy RemoteSigned
+</code></pre>
+<p>I hope this expanded list helps with your system administration tasks. Please comment below if you have any other &quot;go-to&quot; commands!</p>
+<hr>
+<h3>Tổng hợp các lệnh PowerShell &quot;Cứu cánh&quot; cho Quản trị viên Windows Server</h3>
+<p>Chào mọi người. Hôm nay mình muốn chia sẻ và mở rộng thêm danh sách các lệnh PowerShell cực kỳ hữu ích. Tại sao lại là PowerShell trên Windows Server? Vì khi quản lý hàng chục, hàng trăm server, việc click chuột qua từng cửa sổ GUI là bất khả thi và chậm chạp. PowerShell giúp bạn thao tác nhanh, chính xác và dễ dàng tự động hóa.</p>
+<p>Dưới đây là danh sách mình tổng hợp, bao gồm cả các thao tác file cơ bản và các lệnh quản trị hệ thống nâng cao.</p>
+<h3>1. Quản lý File và Dung lượng (File System)</h3>
+<p><strong>Tính toán kích thước thư mục cực nhanh</strong></p>
+<p>Trên Server, việc chuột phải chọn Properties để xem dung lượng thư mục log hoặc user profile rất mất thời gian. Hãy dùng lệnh này để tính toán ngay lập tức:</p>
+<pre><code class="language-powershell">&quot;{0:N2} GB&quot; -f ((Get-ChildItem C:\inetpub\logs\ -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1GB)
+</code></pre>
+<p>(Lệnh này đệ quy tính tổng dung lượng và đổi sang GB, rất tiện để kiểm tra thư mục nào đang chiếm dụng ổ cứng).</p>
+<p><strong>Tìm kiếm nội dung trong file (Grep cho Windows)</strong></p>
+<p>Bạn cần tìm một dòng log lỗi cụ thể hoặc một config sai trong hàng tá file text? Đừng mở từng file một.</p>
+<pre><code class="language-powershell">Select-String -Path C:\Windows\System32\LogFiles\*.log -Pattern &quot;Error 500&quot;
+</code></pre>
+<h3>2. Quản lý Dịch vụ (Services) và Tiến trình (Processes)</h3>
+<p>Đây là việc làm hàng ngày của admin. Thay vì mở services.msc hay Task Manager, bạn có thể làm nhanh hơn nhiều.</p>
+<p><strong>Kiểm tra và Khởi động lại Service bị treo</strong></p>
+<p>Ví dụ: Service Web Server (IIS) bị đơ.</p>
+<pre><code class="language-powershell"># Kiểm tra trạng thái
+Get-Service -Name W3SVC
+
+# Khởi động lại ngay lập tức
+Restart-Service -Name W3SVC -Force
+</code></pre>
+<p><strong>Tìm và &quot;Kill&quot; tiến trình cứng đầu</strong></p>
+<p>Một ứng dụng chiếm quá nhiều RAM và không chịu tắt?</p>
+<pre><code class="language-powershell"># Tìm tiến trình theo tên
+Get-Process -Name &quot;notepad&quot;
+
+# Buộc dừng tiến trình (tương đương End Task)
+Stop-Process -Name &quot;notepad&quot; -Force
+</code></pre>
+<h3>3. Kiểm tra Kết nối Mạng (Network &amp; Connectivity)</h3>
+<p>Trên Windows Server, việc debug mạng là tối quan trọng. Lệnh ping là chưa đủ vì nó không kiểm tra được cổng (port).</p>
+<p><strong>Kiểm tra Port (Thay thế Telnet)</strong></p>
+<p>Lệnh Test-NetConnection (hay viết tắt là tnc) là công cụ mạnh nhất để kiểm tra xem Server có thông tới Database hay Web Server khác không.</p>
+<pre><code class="language-powershell"># Kiểm tra xem máy chủ 192.168.1.10 có mở port 80 không
+Test-NetConnection -ComputerName 192.168.1.10 -Port 80
+</code></pre>
+<p><strong>Xem thông tin IP nhanh gọn</strong></p>
+<p>Thay vì ipconfig /all ra quá nhiều chữ, lệnh này cho cái nhìn gọn gàng hơn về các Interface:</p>
+<pre><code class="language-powershell">Get-NetIPAddress | Format-Table InterfaceAlias, IPAddress, PrefixLength
+</code></pre>
+<h3>4. Quản lý Nhật ký hệ thống (Event Logs)</h3>
+<p>Đọc Event Viewer bằng mắt thường rất mỏi mắt. Hãy lọc nó bằng PowerShell.</p>
+<p><strong>Lấy 10 lỗi gần nhất trong hệ thống</strong></p>
+<p>Lệnh này giúp bạn nắm bắt nhanh tình hình sức khỏe của Server ngay khi vừa login.</p>
+<pre><code class="language-powershell">Get-EventLog -LogName System -EntryType Error -Newest 10
+</code></pre>
+<h3>5. Quản trị từ xa (Remote Management)</h3>
+<p>Đây là &quot;vũ khí&quot; mạnh nhất của Windows Server. Bạn không cần Remote Desktop (RDP) vào server chỉ để chạy vài lệnh.</p>
+<p><strong>Kết nối trực tiếp vào phiên làm việc của Server khác</strong></p>
+<p>Tính năng này gọi là PowerShell Remoting (PSSession).</p>
+<pre><code class="language-powershell"># Mở một phiên kết nối tới Server01
+Enter-PSSession -ComputerName Server01 -Credential (Get-Credential)
+</code></pre>
+<p>Sau khi chạy lệnh này, dấu nhắc lệnh của bạn sẽ đổi thành <code>[Server01]: PS C:\&gt;</code>, nghĩa là mọi lệnh bạn gõ đều đang chạy trên máy kia.</p>
+<h3>6. Cập nhật và Bảo mật</h3>
+<p><strong>Kiểm tra các bản vá lỗi (HotFix) đã cài đặt</strong></p>
+<p>Rất cần thiết để kiểm tra xem Server đã được patch lỗ hổng bảo mật mới nhất chưa.</p>
+<pre><code class="language-powershell">Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10
+</code></pre>
+<p><strong>Chạy quyền Admin cho một ứng dụng cụ thể</strong></p>
+<p>Tương tự lệnh runas bạn đã chia sẻ, nhưng đây là cách gọi trong môi trường object:</p>
+<pre><code class="language-powershell">Start-Process powershell -Verb RunAs
+</code></pre>
+<h3>Mẹo nhỏ: Lưu lại thành Script</h3>
+<p>Nếu bạn thường xuyên phải chạy một chuỗi các lệnh (ví dụ: Dừng service -&gt; Xóa log -&gt; Start service), hãy lưu chúng vào file <code>.ps1</code>.</p>
+<p>Đừng quên kiểm tra Execution Policy như bài gốc đã đề cập:</p>
+<pre><code class="language-powershell">Set-ExecutionPolicy RemoteSigned
+</code></pre>
+<p>Hy vọng danh sách mở rộng này giúp ích cho công việc quản trị hệ thống của bạn. Hãy comment bên dưới nếu bạn có những lệnh &quot;tủ&quot; nào khác nhé!
+```</p>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
