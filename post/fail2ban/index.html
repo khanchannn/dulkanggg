@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Fail2Ban: Protecting Your Server
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            Fail2Ban: Protecting Your Server
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-05
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/ubuntu"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ubuntu
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/vps"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        vps
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/security"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        security
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/network"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        network
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/fail2ban"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        fail2ban
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>Fail2Ban: The Diligent &quot;Bodyguard&quot; Protecting Your Server</h3>
+<p>Hello everyone! If you operate a server (VPS/Dedicated), you surely know that uneasy feeling of seeing thousands of unauthorized login attempts (brute-force) hitting your system daily.</p>
+<p>Don&#39;t worry, Fail2Ban was born to solve this. Think of Fail2Ban as a security guard who reads your server logs 24/7. The moment he spots suspicious activity (like too many wrong passwords), he immediately signals the Firewall to &quot;lock out&quot; that intruder.</p>
+<p>Today, I’ll guide you from A to Z on how to install and use this amazing tool.</p>
+<h3>1. Installation (Easy as Pie)</h3>
+<p>On popular operating systems like Ubuntu or Debian, you only need one command:</p>
+<pre><code class="language-bash">sudo apt install fail2ban
+</code></pre>
+<h3>2. Configuration: The Rules of the Game</h3>
+<p>This is the most important part. Fail2Ban has a very cool configuration principle: It reads <code>.conf</code> files first, but it will prioritize <code>.local</code> files.</p>
+<p><strong>Tip:</strong> Never edit the <code>.conf</code> file directly. Copy it to a <code>.local</code> file to edit. This helps you keep the original file intact and prevents losing your configuration when the software updates.</p>
+<p>Create a local configuration file:</p>
+<pre><code class="language-bash">sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+</code></pre>
+<p>Now open the <code>/etc/fail2ban/jail.local</code> file and edit the core parameters:</p>
+<ul>
+<li><strong>ignoreip</strong>: The &quot;Death Exemption&quot; list. Enter your own IP or your company&#39;s IP here to avoid accidentally locking yourself out if you type the wrong password.</li>
+<li><strong>bantime</strong>: The &quot;Jail time&quot; (in seconds). Default is 600s (10 minutes). I usually increase this to 3600s or more just to be safe.</li>
+<li><strong>findtime &amp; maxretry</strong>: This is the &quot;Three strikes and you&#39;re out&quot; rule. Example: Within the <code>findtime</code> window (10 minutes), if there are more than <code>maxretry</code> (3) failed attempts, then BAN.</li>
+</ul>
+<p><strong>Example SSH protection configuration:</strong>
+By default, SSH is enabled, but you should double-check the <code>[ssh]</code> block:</p>
+<pre><code class="language-ini">[ssh]
+enabled  = true
+port     = ssh      # If you changed your SSH port (e.g., 2222), enter 2222 here
+filter   = sshd
+logpath  = /var/log/auth.log
+maxretry = 3
+</code></pre>
+<h3>3. Advanced: Creating Custom Filters for Websites</h3>
+<p>Fail2Ban doesn&#39;t just protect SSH; it can protect Nginx, Apache, or even your WordPress login page. The principle is using Regex (Regular Expressions) to scan logs. For example, let&#39;s say you want to block someone trying to brute-force <code>wp-login.php</code>.</p>
+<p><strong>Step 1: Check the log</strong>
+See what traces the attacker leaves. Example in <code>/var/log/nginx/access.log</code>:
+<code>123.123.123.123 ... &quot;POST /wp-login.php HTTP/1.1&quot; 200 ...</code></p>
+<p><strong>Step 2: Write the Regex</strong>
+We will translate the log line above into a language Fail2Ban understands:
+<code>&lt;HOST&gt; - - \[(\d{2})/\w{3}/\d{4}:\1:\1:\1 -\d{4}\] &quot;POST /wp-login.php HTTP/1.1&quot; 200</code></p>
+<p><strong>Step 3: Create a new filter</strong>
+Create the file <code>/etc/fail2ban/filter.d/wordpress.conf</code>:</p>
+<pre><code class="language-ini">[Definition]
+failregex = &lt;HOST&gt; - - \[(\d{2})/\w{3}/\d{4}:\1:\1:\1 -\d{4}\] &quot;POST /wp-login.php HTTP/1.1&quot; 200
+ignoreregex =
+</code></pre>
+<p>Then remember to restart the service:</p>
+<pre><code class="language-bash">sudo service fail2ban restart
+</code></pre>
+<h3>4. Management and Monitoring</h3>
+<p>Once installed, you need to know what it&#39;s actually doing, right?</p>
+<p><strong>See how many &quot;bad guys&quot; Fail2Ban has caught:</strong></p>
+<pre><code class="language-bash">sudo fail2ban-client status
+</code></pre>
+<p><strong>See the list of IPs currently blocked in the firewall:</strong></p>
+<pre><code class="language-bash">sudo iptables -L -n -v
+</code></pre>
+<h3>5. For Pros: Installing the Latest Version from Source</h3>
+<p>Sometimes the repository (Repo) on Ubuntu/Debian is a bit outdated. If you want the latest features (like better IPv6 support), install it manually.</p>
+<p><strong>Step 1: Remove the old version</strong></p>
+<pre><code class="language-bash">sudo apt purge fail2ban
+</code></pre>
+<p><strong>Step 2: Download and Install</strong>
+Visit the Fail2Ban Github to get the link for the latest version, then:</p>
+<pre><code class="language-bash"># Download and extract (e.g., version 0.10.4)
+tar xvfj fail2ban-0.10.4.tar.bz2
+cd fail2ban-0.10.4
+
+# Install via Python
+sudo python setup.py install
+</code></pre>
+<p><strong>Step 3: Create a System Boot Service</strong>
+Since you installed it manually, you need to copy the init script yourself:</p>
+<pre><code class="language-bash">cp files/debian-initd /etc/init.d/fail2ban
+update-rc.d fail2ban defaults
+service fail2ban start
+</code></pre>
+<p>Then verify it with the command <code>fail2ban-client version</code> and you&#39;re done!</p>
+<hr>
+<h3>Fail2Ban: Chàng &quot;Vệ sĩ&quot; Cần Mẫn Bảo Vệ Server Của Bạn</h3>
+<p>Chào mọi người! Nếu bạn đang vận hành một server (VPS/Dedicated), chắc hẳn bạn biết cảm giác bất an khi hàng ngày có hàng ngàn lượt cố gắng đăng nhập trái phép (brute-force) vào hệ thống.</p>
+<p>Đừng lo, Fail2Ban sinh ra là để giải quyết vấn đề này. Hãy tưởng tượng Fail2Ban như một người bảo vệ ngồi đọc nhật ký (logs) của server 24/7. Hễ thấy ai có dấu hiệu khả nghi (như gõ sai mật khẩu quá nhiều lần), anh ta sẽ lập tức báo cho tường lửa (Firewall) &quot;cấm cửa&quot; kẻ đó ngay lập tức.</p>
+<p>Hôm nay mình sẽ hướng dẫn các bạn từ A-Z cách cài đặt và sử dụng công cụ tuyệt vời này nhé.</p>
+<h3>1. Cài đặt (Dễ như ăn kẹo)</h3>
+<p>Trên các hệ điều hành phổ biến như Ubuntu hay Debian, bạn chỉ cần một câu lệnh:</p>
+<pre><code class="language-bash">sudo apt install fail2ban
+</code></pre>
+<h3>2. Cấu hình: Quy tắc của trò chơi</h3>
+<p>Đây là phần quan trọng nhất. Fail2Ban có một nguyên tắc cấu hình rất hay: Nó đọc file <code>.conf</code> trước, nhưng sẽ ưu tiên file <code>.local</code>.</p>
+<p><strong>Mẹo:</strong> Đừng bao giờ sửa trực tiếp file <code>.conf</code>. Hãy copy ra file <code>.local</code> để sửa. Điều này giúp bạn giữ nguyên file gốc và không bị mất cấu hình khi cập nhật phần mềm.</p>
+<p>Tạo file cấu hình local:</p>
+<pre><code class="language-bash">sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+</code></pre>
+<p>Bây giờ hãy mở file <code>/etc/fail2ban/jail.local</code> và chỉnh sửa các thông số cốt lõi:</p>
+<ul>
+<li><strong>ignoreip</strong>: Danh sách các IP &quot;được miễn tử&quot;. Hãy điền IP của chính bạn hoặc công ty vào đây để tránh trường hợp lỡ tay gõ sai mật khẩu mà tự nhốt mình ở ngoài.</li>
+<li><strong>bantime</strong>: Thời gian &quot;đi tù&quot; (tính bằng giây). Mặc định là 600s (10 phút). Mình thường tăng lên 3600s hoặc hơn cho chắc ăn.</li>
+<li><strong>findtime &amp; maxretry</strong>: Đây là luật &quot;quá tam ba bận&quot;. Ví dụ: Trong khoảng thời gian <code>findtime</code> (10 phút), nếu đăng nhập sai quá <code>maxretry</code> (3 lần) thì BAN.</li>
+</ul>
+<p><strong>Ví dụ cấu hình bảo vệ SSH:</strong>
+Mặc định SSH đã được bật, nhưng bạn nên kiểm tra lại đoạn cấu hình <code>[ssh]</code>:</p>
+<pre><code class="language-ini">[ssh]
+enabled  = true
+port     = ssh      # Nếu bạn đổi port SSH (ví dụ 2222), hãy điền số 2222 vào đây
+filter   = sshd
+logpath  = /var/log/auth.log
+maxretry = 3
+</code></pre>
+<h3>3. Nâng cao: Tự tạo bộ lọc (Filters) cho Website</h3>
+<p>Fail2Ban không chỉ bảo vệ SSH, nó bảo vệ được cả Nginx, Apache hay thậm chí là trang đăng nhập WordPress của bạn.</p>
+<p>Nguyên lý là sử dụng Regex (Biểu thức chính quy) để soi log. Ví dụ bạn muốn chặn ai đó cố dò mật khẩu trang <code>wp-login.php</code>.</p>
+<p><strong>Bước 1: Soi log</strong>
+Xem kẻ tấn công để lại dấu vết gì. Ví dụ trong <code>/var/log/nginx/access.log</code>:
+<code>123.123.123.123 ... &quot;POST /wp-login.php HTTP/1.1&quot; 200 ...</code></p>
+<p><strong>Bước 2: Viết Regex</strong>
+Chúng ta sẽ chuyển dòng log trên thành ngôn ngữ mà Fail2Ban hiểu:
+<code>&lt;HOST&gt; - - \[(\d{2})/\w{3}/\d{4}:\1:\1:\1 -\d{4}\] &quot;POST /wp-login.php HTTP/1.1&quot; 200</code></p>
+<p><strong>Bước 3: Tạo filter mới</strong>
+Tạo file <code>/etc/fail2ban/filter.d/wordpress.conf</code>:</p>
+<pre><code class="language-ini">[Definition]
+failregex = &lt;HOST&gt; - - \[(\d{2})/\w{3}/\d{4}:\1:\1:\1 -\d{4}\] &quot;POST /wp-login.php HTTP/1.1&quot; 200
+ignoreregex =
+</code></pre>
+<p>Sau đó nhớ restart lại service nhé:</p>
+<pre><code class="language-bash">sudo service fail2ban restart
+</code></pre>
+<h3>4. Quản lý và Theo dõi</h3>
+<p>Cài xong rồi thì phải biết xem nó đang làm gì chứ nhỉ?</p>
+<p><strong>Xem Fail2Ban đang &quot;bắt&quot; được bao nhiêu đứa:</strong></p>
+<pre><code class="language-bash">sudo fail2ban-client status
+</code></pre>
+<p><strong>Xem danh sách IP đang bị chặn trong tường lửa:</strong></p>
+<pre><code class="language-bash">sudo iptables -L -n -v
+</code></pre>
+<h3>5. Dành cho Pro: Cài đặt phiên bản mới nhất từ Source</h3>
+<p>Đôi khi kho ứng dụng (Repo) của Ubuntu/Debian cập nhật khá chậm. Nếu bạn muốn dùng các tính năng mới nhất (như hỗ trợ IPv6 tốt hơn), hãy cài thủ công.</p>
+<p><strong>Bước 1: Gỡ bản cũ</strong></p>
+<pre><code class="language-bash">sudo apt purge fail2ban
+</code></pre>
+<p><strong>Bước 2: Tải và cài đặt</strong>
+Truy cập Github của Fail2Ban để lấy link bản mới nhất, sau đó:</p>
+<pre><code class="language-bash"># Tải về và giải nén (ví dụ bản 0.10.4)
+tar xvfj fail2ban-0.10.4.tar.bz2
+cd fail2ban-0.10.4
+
+# Cài đặt bằng Python
+sudo python setup.py install
+</code></pre>
+<p><strong>Bước 3: Tạo service khởi động cùng Windows</strong>
+Vì cài thủ công nên bạn phải tự copy file khởi động (init script):</p>
+<pre><code class="language-bash">cp files/debian-initd /etc/init.d/fail2ban
+update-rc.d fail2ban defaults
+service fail2ban start
+</code></pre>
+<p>Sau đó kiểm tra lại bằng lệnh <code>fail2ban-client version</code> là xong!</p>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const codeBlocks = document.querySelectorAll('.post-content pre');
+
+                codeBlocks.forEach(pre => {
+                    const button = document.createElement('button');
+                    button.className = 'copy-btn';
+                    button.textContent = 'Copy';
+
+                    button.addEventListener('click', () => {
+                        const code = pre.querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.textContent = 'Copied!';
+                            setTimeout(() => {
+                                button.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy:', err);
+                            button.textContent = 'Error';
+                        });
+                    });
+
+                    pre.appendChild(button);
+                });
+            });
+        </script>
