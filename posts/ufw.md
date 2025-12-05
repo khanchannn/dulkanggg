@@ -1,5 +1,5 @@
 ---
-title: "Mastering Linux Firewalls Made Easy with UFW (Uncomplicated Firewall)"
+title: "Mastering Linux Firewalls UFW (Uncomplicated Firewall)"
 date: "2025-12-02"
 tags: ["ubuntu", "vps", "bilingual","cybersecurity", "firewall", "ufw", "iptables"]
 ---
