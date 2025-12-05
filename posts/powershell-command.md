@@ -1,4 +1,3 @@
-```
 ---
 title: "PowerShell Commands for Windows Server Admins"
 date: "2025-12-04"
@@ -274,4 +273,3 @@ Set-ExecutionPolicy RemoteSigned
 ```
 
 Hy vọng danh sách mở rộng này giúp ích cho công việc quản trị hệ thống của bạn. Hãy comment bên dưới nếu bạn có những lệnh "tủ" nào khác nhé!
-```
