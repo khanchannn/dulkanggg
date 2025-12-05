@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        
+        PowerShell Commands for Windows Server Admins
     </title>
     <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,40 +32,50 @@
 
     <article class="post-content">
         <h1 style="color: #e2b714;">
-            
+            PowerShell Commands for Windows Server Admins
         </h1>
         <div style="color: var(--accent-color); margin-bottom: 20px;">
             <span>
-                
+                2025-12-04
             </span>
             
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/windows"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        windows
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/server"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        server
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/automation"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        automation
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                        
         </div>
 
         <div>
-            <pre><code>---
-title: &quot;PowerShell Commands for Windows Server Admins&quot;
-date: &quot;2025-12-04&quot;
-tags: [&quot;windows&quot;, &quot;server&quot;, &quot;automation&quot;,&quot;bilingual&quot;]
----
-
-&gt; *🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).*
-
----
-
-### Essential PowerShell &quot;Lifesaver&quot; Commands for Windows Server Admins
-
-Hello everyone. Today, I’d like to share and expand on a list of extremely useful PowerShell commands. Why use PowerShell on Windows Server? Because when you are managing dozens or hundreds of servers, clicking through individual GUI windows is impossible and incredibly slow. PowerShell allows you to operate quickly, accurately, and makes automation easy.
-
-Below is a compiled list that includes both basic file operations and advanced system administration commands.
-
-### 1. File System &amp; Storage Management
-
-**Calculate folder size instantly**
-
-On a Server, right-clicking Properties to check the size of a log folder or user profile can take forever. Use this command to calculate it immediately:
-
-```powershell
-&quot;{0:N2} GB&quot; -f ((Get-ChildItem C:\inetpub\logs\ -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1GB)
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>Essential PowerShell &quot;Lifesaver&quot; Commands for Windows Server Admins</h3>
+<p>Hello everyone. Today, I’d like to share and expand on a list of extremely useful PowerShell commands. Why use PowerShell on Windows Server? Because when you are managing dozens or hundreds of servers, clicking through individual GUI windows is impossible and incredibly slow. PowerShell allows you to operate quickly, accurately, and makes automation easy.</p>
+<p>Below is a compiled list that includes both basic file operations and advanced system administration commands.</p>
+<h3>1. File System &amp; Storage Management</h3>
+<p><strong>Calculate folder size instantly</strong></p>
+<p>On a Server, right-clicking Properties to check the size of a log folder or user profile can take forever. Use this command to calculate it immediately:</p>
+<pre><code class="language-powershell">&quot;{0:N2} GB&quot; -f ((Get-ChildItem C:\inetpub\logs\ -Recurse | Measure-Object -Property Length -Sum -ErrorAction Stop).Sum / 1GB)
 </code></pre>
 <p>(This command recursively calculates the total size and converts it to GB, which is very handy for checking which folders are consuming your disk space).</p>
 <p><strong>Search content in files (&quot;Grep&quot; for Windows)</strong></p>
@@ -201,8 +211,7 @@ Enter-PSSession -ComputerName Server01 -Credential (Get-Credential)
 <p>Đừng quên kiểm tra Execution Policy như bài gốc đã đề cập:</p>
 <pre><code class="language-powershell">Set-ExecutionPolicy RemoteSigned
 </code></pre>
-<p>Hy vọng danh sách mở rộng này giúp ích cho công việc quản trị hệ thống của bạn. Hãy comment bên dưới nếu bạn có những lệnh &quot;tủ&quot; nào khác nhé!
-```</p>
+<p>Hy vọng danh sách mở rộng này giúp ích cho công việc quản trị hệ thống của bạn. Hãy comment bên dưới nếu bạn có những lệnh &quot;tủ&quot; nào khác nhé!</p>
 
         </div>
     </article>
