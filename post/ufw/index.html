@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Mastering Linux Firewalls Made Easy with UFW (Uncomplicated Firewall)
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            Mastering Linux Firewalls Made Easy with UFW (Uncomplicated Firewall)
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-02
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/ubuntu"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ubuntu
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/vps"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        vps
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/cybersecurity"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        cybersecurity
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/firewall"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        firewall
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/ufw"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ufw
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/iptables"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        iptables
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>Mastering Linux Firewalls Made Easy with UFW (Uncomplicated Firewall)</h3>
+<p>Hello everyone! If you&#39;ve ever had a headache looking at the messy rules of iptables to configure a firewall, then UFW is your savior.</p>
+<p>True to its name, &quot;Uncomplicated Firewall&quot;, this tool was born to simplify server protection. It provides an extremely friendly command-line interface to manage the underlying iptables. Today, I will guide you through the essential operations to master UFW.</p>
+<h3>1. Installation and Startup</h3>
+<p>On distros like Ubuntu or Debian, installation takes just a few seconds:</p>
+<pre><code class="language-bash">sudo apt install ufw
+</code></pre>
+<p>By default after installation, UFW will be Inactive to prevent locking you out of the server immediately. To check the status:</p>
+<pre><code class="language-bash">sudo ufw status
+</code></pre>
+<p>If you want to support IPv6, open the configuration file and check this line:</p>
+<pre><code class="language-bash">sudo nano /etc/default/ufw
+# Ensure this line is set to yes
+IPV6=yes
+</code></pre>
+<p>If you need to restart the firewall after changing the config:</p>
+<pre><code class="language-bash">sudo ufw disable
+sudo ufw enable
+</code></pre>
+<h3>2. Setting Default &quot;Rules of the Game&quot;</h3>
+<p>The golden rule in security is: &quot;Deny all, allow only what is necessary&quot;. Before opening any ports, set the defaults to block all incoming connections and allow all outgoing connections.</p>
+<pre><code class="language-bash"># Block all incoming traffic
+sudo ufw default deny incoming
+
+# Allow all outgoing traffic
+sudo ufw default allow outgoing
+</code></pre>
+<p><strong>Quick Tip:</strong> To ensure UFW always starts with the system, check the <code>/etc/ufw/ufw.conf</code> file and set <code>ENABLED=yes</code>.</p>
+<h3>3. Opening Ports (Allow)</h3>
+<p><strong>Most Important: SSH</strong>
+Never enable the firewall without opening the SSH port, otherwise, you will lock yourself out!</p>
+<pre><code class="language-bash"># Method 1: By service name
+sudo ufw allow ssh
+
+# Method 2: By port number (default is 22)
+sudo ufw allow 22/tcp
+</code></pre>
+<p><em>Note: If you changed your SSH port to a different number (e.g., 2222), use the command: <code>sudo ufw allow 2222/tcp</code>.</em></p>
+<p><strong>Web Server (HTTP/HTTPS)</strong>
+Allow web access:</p>
+<pre><code class="language-bash">sudo ufw allow www
+# Or
+sudo ufw allow 80/tcp
+</code></pre>
+<p><strong>FTP Server</strong></p>
+<pre><code class="language-bash">sudo ufw allow ftp
+# Or
+sudo ufw allow 21/tcp
+</code></pre>
+<p><strong>Opening a Port Range</strong>
+If your application needs a wide range of ports (e.g., from 100 to 300):</p>
+<pre><code class="language-bash">sudo ufw allow 100:300/tcp
+sudo ufw allow 100:300/udp
+</code></pre>
+<h3>4. Advanced Configuration (Specific IP)</h3>
+<p>This is a great way to enhance security. Instead of opening the door to the whole world, you only open it for a specific person.</p>
+<p><strong>Allow a specific IP:</strong></p>
+<pre><code class="language-bash">sudo ufw allow from 192.168.0.100
+</code></pre>
+<p><strong>Allow an entire Subnet:</strong></p>
+<pre><code class="language-bash">sudo ufw allow from 123.45.67.89/24
+</code></pre>
+<p><strong>Combo: Allow this IP to this specific Port only:</strong>
+Example: Only allow the Boss&#39;s machine (IP 123.45.67.89) to SSH into the server.</p>
+<pre><code class="language-bash">sudo ufw allow from 123.45.67.89 to any port 22 proto tcp
+</code></pre>
+<h3>5. Managing and Deleting Rules</h3>
+<p>Added a rule by mistake? No problem.</p>
+<p><strong>Block connections (Deny)</strong>
+Although we defaulted to deny all, if you need to specifically block a port that is currently open:</p>
+<pre><code class="language-bash">sudo ufw deny 80/tcp
+</code></pre>
+<p><strong>Delete rules (Delete)</strong>
+The simplest way is to add delete before the old command:</p>
+<pre><code class="language-bash">sudo ufw delete allow 80/tcp
+</code></pre>
+<p><strong>The &quot;Pro&quot; way to delete (by line number)</strong>
+Sometimes you don&#39;t remember the original command, so list them with numbers:</p>
+<pre><code class="language-bash">sudo ufw status numbered
+</code></pre>
+<p>The result will look like <code>[ 1] 22/tcp ALLOW ....</code> To delete rule number 1, just run:</p>
+<pre><code class="language-bash">sudo ufw delete 1
+</code></pre>
+<h3>6. Operation</h3>
+<p>Once you have finished configuring the rules, it&#39;s time to turn the firewall ON:</p>
+<pre><code class="language-bash">sudo ufw enable
+</code></pre>
+<p>To see detailed running rules:</p>
+<pre><code class="language-bash">sudo ufw status verbose
+</code></pre>
+<p>If you messed up the configuration too much and want to start over (Reset):</p>
+<pre><code class="language-bash">sudo ufw reset
+</code></pre>
+<h3>7. System Logging</h3>
+<p>To know who is trying to &quot;intrude&quot; or to check if rules are working correctly, enable logging:</p>
+<pre><code class="language-bash">sudo ufw logging on
+# Set log level (low, medium, high). Default is low.
+sudo ufw logging medium
+</code></pre>
+<p>Read logs at <code>/var/log/ufw.log</code> or via <code>dmesg</code>. A log line will look like this: <code>[UFW BLOCK] IN=eth0 ... SRC=123.45.67.89 DST=987.65.43.21 ... DPT=22</code></p>
+<p><strong>Quick Decode:</strong></p>
+<ul>
+<li><code>[UFW BLOCK]</code>: Connection has been blocked.</li>
+<li><code>SRC</code>: The IP address of the source sending the packet.</li>
+<li><code>DPT</code> (Destination Port): The port they are trying to access (e.g., 22 is SSH).</li>
+</ul>
+<p><strong>Bonus: For the team that hates typing commands</strong>
+If you prefer a Graphical User Interface (GUI), install GUFW:</p>
+<pre><code class="language-bash">sudo apt install gufw
+</code></pre>
+<p>It provides an intuitive interface to toggle the firewall with just a few clicks.</p>
+<p>Hope this article helps you manage your server safely and easily. If you have any questions, feel free to comment below!</p>
+<hr>
+<h3>Làm chủ tường lửa trên Linux cực dễ với UFW (Uncomplicated Firewall)</h3>
+<p>Chào mọi người! Nếu bạn từng &quot;đau đầu&quot; khi nhìn vào mớ quy tắc rối rắm của iptables để cấu hình tường lửa, thì UFW chính là vị cứu tinh của bạn.</p>
+<p>Đúng như tên gọi &quot;Uncomplicated Firewall&quot; (Tường lửa không phức tạp), công cụ này sinh ra để đơn giản hóa việc bảo vệ server. Nó cung cấp một giao diện dòng lệnh cực kỳ thân thiện để quản lý iptables bên dưới. Hôm nay mình sẽ hướng dẫn các bạn những thao tác &quot;nằm lòng&quot; để sử dụng UFW nhé.</p>
+<h3>1. Cài đặt và Khởi động</h3>
+<p>Trên các distro như Ubuntu hay Debian, việc cài đặt chỉ tốn vài giây:</p>
+<pre><code class="language-bash">sudo apt install ufw
+</code></pre>
+<p>Mặc định sau khi cài, UFW sẽ ở trạng thái Inactive (không hoạt động) để tránh việc bạn vừa cài xong đã bị chặn khỏi server. Để kiểm tra trạng thái:</p>
+<pre><code class="language-bash">sudo ufw status
+</code></pre>
+<p>Nếu bạn muốn hỗ trợ cả IPv6, hãy mở file cấu hình và kiểm tra dòng này:</p>
+<pre><code class="language-bash">sudo nano /etc/default/ufw
+# Đảm bảo dòng này là yes
+IPV6=yes
+</code></pre>
+<p>Nếu bạn cần khởi động lại tường lửa sau khi chỉnh config:</p>
+<pre><code class="language-bash">sudo ufw disable
+sudo ufw enable
+</code></pre>
+<h3>2. Thiết lập &quot;Luật chơi&quot; mặc định (Defaults)</h3>
+<p>Nguyên tắc vàng trong bảo mật là: &quot;Cấm tất cả, chỉ mở những gì cần thiết&quot;. Trước khi mở cổng, hãy thiết lập mặc định chặn mọi kết nối từ ngoài vào (incoming) và cho phép mọi kết nối từ trong ra (outgoing).</p>
+<pre><code class="language-bash"># Chặn tất cả chiều vào
+sudo ufw default deny incoming
+
+# Cho phép tất cả chiều ra
+sudo ufw default allow outgoing
+</code></pre>
+<p><strong>Mẹo nhỏ:</strong> Để UFW luôn tự bật khi khởi động máy, hãy kiểm tra file <code>/etc/ufw/ufw.conf</code> và set <code>ENABLED=yes</code>.</p>
+<h3>3. Mở cổng kết nối (Allow)</h3>
+<p><strong>Quan trọng nhất: SSH</strong>
+Đừng bao giờ bật tường lửa mà quên mở cổng SSH, nếu không bạn sẽ tự nhốt mình ở ngoài đấy!</p>
+<pre><code class="language-bash"># Cách 1: Gọi tên dịch vụ
+sudo ufw allow ssh
+
+# Cách 2: Gọi số port (mặc định là 22)
+sudo ufw allow 22/tcp
+</code></pre>
+<p><em>Lưu ý: Nếu bạn đã đổi port SSH sang số khác (ví dụ 2222), hãy dùng lệnh: <code>sudo ufw allow 2222/tcp</code>.</em></p>
+<p><strong>Web Server (HTTP/HTTPS)</strong>
+Cho phép truy cập web:</p>
+<pre><code class="language-bash">sudo ufw allow www
+# Hoặc
+sudo ufw allow 80/tcp
+</code></pre>
+<p><strong>FTP Server</strong></p>
+<pre><code class="language-bash">sudo ufw allow ftp
+# Hoặc
+sudo ufw allow 21/tcp
+</code></pre>
+<p><strong>Mở một dải Port</strong>
+Nếu ứng dụng của bạn cần một dải cổng rộng (ví dụ từ 100 đến 300):</p>
+<pre><code class="language-bash">sudo ufw allow 100:300/tcp
+sudo ufw allow 100:300/udp
+</code></pre>
+<h3>4. Cấu hình nâng cao (Specific IP)</h3>
+<p>Đây là cách tuyệt vời để tăng cường bảo mật. Thay vì mở cửa cho cả thế giới, bạn chỉ mở cửa cho một người cụ thể.</p>
+<p><strong>Cho phép 1 IP cụ thể:</strong></p>
+<pre><code class="language-bash">sudo ufw allow from 192.168.0.100
+</code></pre>
+<p><strong>Cho phép cả một Subnet (Mạng con):</strong></p>
+<pre><code class="language-bash">sudo ufw allow from 123.45.67.89/24
+</code></pre>
+<p><strong>Combo: Chỉ cho phép IP này vào Port này:</strong>
+Ví dụ: Chỉ cho máy Sếp (IP 123.45.67.89) được SSH vào server.</p>
+<pre><code class="language-bash">sudo ufw allow from 123.45.67.89 to any port 22 proto tcp
+</code></pre>
+<h3>5. Quản lý và Xóa quy tắc</h3>
+<p>Lỡ tay thêm nhầm luật? Không sao cả.</p>
+<p><strong>Chặn kết nối (Deny)</strong>
+Mặc dù mặc định chúng ta đã chặn hết, nhưng nếu cần chặn cụ thể một port nào đó đang mở:</p>
+<pre><code class="language-bash">sudo ufw deny 80/tcp
+</code></pre>
+<p><strong>Xóa quy tắc (Delete)</strong>
+Cách đơn giản nhất là thêm từ delete vào trước câu lệnh cũ:</p>
+<pre><code class="language-bash">sudo ufw delete allow 80/tcp
+</code></pre>
+<p><strong>Cách xóa chuyên nghiệp hơn (theo số thứ tự)</strong>
+Đôi khi bạn không nhớ câu lệnh gốc, hãy liệt kê chúng ra kèm số thứ tự:</p>
+<pre><code class="language-bash">sudo ufw status numbered
+</code></pre>
+<p>Kết quả sẽ có dạng <code>[ 1] 22/tcp ALLOW ....</code> Muốn xóa quy tắc số 1, chỉ cần:</p>
+<pre><code class="language-bash">sudo ufw delete 1
+</code></pre>
+<h3>6. Vận hành</h3>
+<p>Sau khi đã cấu hình xong xuôi các quy tắc, giờ là lúc BẬT tường lửa lên:</p>
+<pre><code class="language-bash">sudo ufw enable
+</code></pre>
+<p>Để xem chi tiết các quy tắc đang chạy:</p>
+<pre><code class="language-bash">sudo ufw status verbose
+</code></pre>
+<p>Nếu bạn cấu hình sai quá nhiều và muốn làm lại từ đầu (Reset):</p>
+<pre><code class="language-bash">sudo ufw reset
+</code></pre>
+<h3>7. Nhật ký hệ thống (Logging)</h3>
+<p>Để biết ai đang cố gắng &quot;đột nhập&quot; hoặc kiểm tra xem rule có chạy đúng không, hãy bật log:</p>
+<pre><code class="language-bash">sudo ufw logging on
+# Chỉnh mức độ log (low, medium, high). Mặc định là low.
+sudo ufw logging medium
+</code></pre>
+<p>Đọc log tại <code>/var/log/ufw.log</code> hoặc <code>dmesg</code>. Một dòng log sẽ trông như thế này: <code>[UFW BLOCK] IN=eth0 ... SRC=123.45.67.89 DST=987.65.43.21 ... DPT=22</code></p>
+<p><strong>Giải mã nhanh:</strong></p>
+<ul>
+<li><code>[UFW BLOCK]</code>: Kết nối đã bị chặn.</li>
+<li><code>SRC</code>: IP của kẻ đang gửi gói tin đến.</li>
+<li><code>DPT</code> (Destination Port): Cổng mà họ đang cố truy cập (ví dụ 22 là SSH).</li>
+</ul>
+<p><strong>Bonus: Dành cho team không thích gõ lệnh</strong>
+Nếu bạn thích giao diện đồ họa (GUI), hãy cài đặt GUFW:</p>
+<pre><code class="language-bash">sudo apt install gufw
+</code></pre>
+<p>Nó cung cấp một giao diện trực quan để bạn bật tắt firewall chỉ bằng những cú click chuột.</p>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const codeBlocks = document.querySelectorAll('.post-content pre');
+
+                codeBlocks.forEach(pre => {
+                    const button = document.createElement('button');
+                    button.className = 'copy-btn';
+                    button.textContent = 'Copy';
+
+                    button.addEventListener('click', () => {
+                        const code = pre.querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.textContent = 'Copied!';
+                            setTimeout(() => {
+                                button.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy:', err);
+                            button.textContent = 'Error';
+                        });
+                    });
+
+                    pre.appendChild(button);
+                });
+            });
+        </script>
