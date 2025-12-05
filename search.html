@@ -62,6 +62,22 @@
             })
             .catch(err => console.error('Error loading search index:', err));
 
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark style="background-color: yellow; color: black;">$1</mark>');
+        }
+
+        function getSnippet(body, query) {
+            if (!query) return body.substring(0, 150) + '...';
+            const index = body.toLowerCase().indexOf(query);
+            if (index === -1) return body.substring(0, 150) + '...';
+
+            const start = Math.max(0, index - 50);
+            const end = Math.min(body.length, index + 100);
+            return '...' + body.substring(start, end) + '...';
+        }
+
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             searchResults.innerHTML = '';
@@ -83,9 +99,15 @@
             filteredPosts.forEach(post => {
                 const li = document.createElement('li');
                 li.className = 'post-item';
+
+                const highlightedTitle = highlightText(post.title, query);
+                const snippet = getSnippet(post.body, query);
+                const highlightedSnippet = highlightText(snippet, query);
+
                 li.innerHTML = `
                 <span class="post-date">${post.date}</span>
-                <span class="post-title"><a href="/dulkanggg/post/${post.slug}">${post.title}</a></span>
+                <span class="post-title"><a href="/dulkanggg/post/${post.slug}">${highlightedTitle}</a></span>
+                <p style="font-size: 0.9em; color: #ccc; margin-top: 5px;">${highlightedSnippet}</p>
             `;
                 searchResults.appendChild(li);
             });
