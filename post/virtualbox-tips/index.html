@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        VirtualBox Tips
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            VirtualBox Tips
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-06
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/virtualbox"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        virtualbox
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/ubuntu"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ubuntu
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>Essential &quot;Lifesaver&quot; Tips &amp; Tricks for VirtualBox Users</h3>
+<p>You&#39;re probably no stranger to VirtualBox, right? Installation guides are everywhere; a quick Google search gives you tons of results. So, I won&#39;t bore you by &quot;lecturing&quot; on dry theory here.</p>
+<p>Instead, I’ll summarize the &quot;must-have&quot; steps to take immediately after installation to avoid silly mistakes, plus a few cool tricks you&#39;ll inevitably look for sooner or later. These are my personal notes to save myself from pulling my hair out every time a VM acts up. Let&#39;s dive in! 🚀</p>
+<h3>1. The &quot;3-Step Combo&quot; to Do Immediately After Installation</h3>
+<p>Do this, and I guarantee your machine will run smoothly, copy-paste will fly, and USBs will connect seamlessly.</p>
+<p><strong>Step 1: Grant Permissions to the User (On the Host machine)</strong></p>
+<p>Run this command to add your user to the <code>vboxusers</code> group. Remember to log out and log back in for it to take effect.</p>
+<pre><code class="language-bash">usermod -aG vboxusers username
+</code></pre>
+<p><strong>Step 2: Install the Extension Pack</strong></p>
+<p>Download this from the VirtualBox homepage; just double-click to install it.</p>
+<p><strong>Step 3: Install Guest Additions (On the Virtual Machine - Guest)</strong></p>
+<p>Inside your Linux VM, install the required packages:</p>
+<pre><code class="language-bash">sudo apt install build-essential dkms linux-headers-$(uname -r)
+</code></pre>
+<p>Then, on the VirtualBox menu bar, select <strong>Insert Guest Additions CD image</strong> and run the file <code>./VBoxLinuxAdditions.run</code> as root.</p>
+<p>✅ <strong>Result:</strong> Full screen, shared folders, bi-directional copy/paste, and smooth USB support!</p>
+<h3>2. Tips to &quot;Slim Down&quot; Your .VDI Files 📉</h3>
+<p>After using it for a while, your virtual hard disk file (<code>.vdi</code>) keeps bloating up even if you&#39;ve deleted data inside. Don&#39;t worry, here is how to squeeze it back down:</p>
+<p><strong>👉 For Linux Guests:</strong></p>
+<ul>
+<li><strong>On the Guest:</strong> Zero-out the free space.</li>
+</ul>
+<pre><code class="language-bash">dd if=/dev/zero of=/var/tmp/bigemptyfile bs=4096k ; rm /var/tmp/bigemptyfile
+</code></pre>
+<blockquote>
+<p><strong>Note:</strong> Grab a coffee, this takes a little while.</p>
+</blockquote>
+<ul>
+<li><strong>On the Host:</strong> Compact the file.</li>
+</ul>
+<pre><code class="language-bash"># For VirtualBox &gt;= 6.1.4
+VBoxManage modifymedium disk /path/to/thedisk.vdi --compact
+</code></pre>
+<p><strong>👉 For Windows Guests:</strong></p>
+<ul>
+<li><strong>On the Guest:</strong> Run Disk Defragmentation. Then download the <strong>SDelete</strong> tool and run this in CMD:</li>
+</ul>
+<pre><code class="language-cmd">sdelete.exe c: -z
+</code></pre>
+<ul>
+<li><strong>On the Host:</strong> Similar to above.</li>
+</ul>
+<pre><code class="language-bash">VBoxManage modifymedium disk /path/to/thedisk.vdi --compact
+</code></pre>
+<h3>3. Change Format &amp; Increase Disk Size 💾</h3>
+<p><strong>🔄 Convert from VMDK to VDI (for easier compaction):</strong></p>
+<p>If you accidentally created a VMDK drive but want to compress it, you need to convert it to VDI first:</p>
+<pre><code class="language-bash">VBoxManage clonehd &quot;source.vmdk&quot; &quot;cloned.vdi&quot; --format vdi
+</code></pre>
+<p>(Remember to <strong>backup first</strong> just to be safe)</p>
+<p><strong>⬆️ Increase Disk Capacity (Resize):</strong></p>
+<p>Virtual disk out of space? Don&#39;t create a new machine, run this command to expand it (e.g., to 50GB):</p>
+<pre><code class="language-bash">VBoxManage modifyhd &quot;disk.vdi&quot; --resize 51200
+</code></pre>
+<p>Then go into the VM and use <strong>GParted</strong> to extend the partition, and you&#39;re done!</p>
+<h3>4. Fix the &quot;Slow as a Snail&quot; Windows VM Issue 🐢</h3>
+<p>If your Windows VM is lagging terribly and you see a green turtle icon in the status bar, the main culprit is <strong>Hyper-V</strong>.</p>
+<p><strong>How to fix it:</strong></p>
+<ol>
+<li>Disable the <strong>Core Isolation</strong> feature in Windows Defender.</li>
+<li>Disable Hyper-V using this PowerShell command (run as Admin):</li>
+</ol>
+<pre><code class="language-powershell">bcdedit /set hypervisorlaunchtype off
+</code></pre>
+<ol start="3">
+<li>Reboot the machine:</li>
+</ol>
+<pre><code class="language-powershell">shutdown -s -t 2
+</code></pre>
+<p>No more turtle; your machine will run like the wind again! 💨</p>
+<hr>
+<h3>Bỏ túi ngay loạt Tips &amp; Tricks &quot;cứu cánh&quot; cho dân chơi VirtualBox</h3>
+<p>Mọi người chắc không lạ gì với VirtualBox rồi đúng không? Tài liệu cài đặt thì đầy rẫy trên mạng, Google cái là ra cả tá. Thế nên bài này mình sẽ không ngồi &quot;giảng đạo&quot; lại mớ lý thuyết khô khan đó đâu.</p>
+<p>Thay vào đó, mình sẽ tóm tắt lại những thao tác &quot;must-have&quot; sau khi cài đặt để tránh mấy lỗi ngớ ngẩn, cộng thêm vài thủ thuật cực hay ho mà sớm muộn gì bạn cũng sẽ cần tìm kiếm. Đây là những note mình tự rút ra để đỡ phải vò đầu bứt tai mỗi khi máy ảo dở chứng. Bắt đầu nào! 🚀</p>
+<h3>1. &quot;Combo 3 bước&quot; cần làm ngay sau khi cài đặt</h3>
+<p>Làm xong cái này đảm bảo máy chạy mượt, copy-paste ầm ầm, nhận USB thoải mái luôn.</p>
+<p><strong>Bước 1: Cấp quyền cho User (Trên máy thật - Host)</strong></p>
+<p>Chạy lệnh này để thêm user của bạn vào nhóm <code>vboxusers</code>. Nhớ log out rồi log in lại mới ăn nha.</p>
+<pre><code class="language-bash">usermod -aG vboxusers username
+</code></pre>
+<p><strong>Bước 2: Cài Extension Pack</strong></p>
+<p>Cái này tải trên trang chủ VirtualBox, click đúp là cài thôi.</p>
+<p><strong>Bước 3: Cài Guest Additions (Trên máy ảo - Guest)</strong></p>
+<p>Vào máy ảo Linux, cài các gói cần thiết:</p>
+<pre><code class="language-bash">sudo apt install build-essential dkms linux-headers-$(uname -r)
+</code></pre>
+<p>Sau đó trên thanh menu VirtualBox, chọn <strong>Insert Guest Additions CD image</strong> và chạy file <code>./VBoxLinuxAdditions.run</code> với quyền root.</p>
+<p>✅ <strong>Kết quả:</strong> Full màn hình, share folder, copy/paste 2 chiều, nhận USB ngon lành!</p>
+<h3>2. Bí kíp &quot;giảm cân&quot; cho file .VDI 📉</h3>
+<p>Dùng một thời gian, file ổ cứng ảo (<code>.vdi</code>) cứ phình to ra dù bên trong bạn đã xóa bớt dữ liệu. Đừng lo, đây là cách ép nó nhỏ lại:</p>
+<p><strong>👉 Với máy ảo Linux:</strong></p>
+<ul>
+<li><strong>Trên máy ảo:</strong> Lấp đầy chỗ trống bằng số 0 (Zero-out free space).</li>
+</ul>
+<pre><code class="language-bash">dd if=/dev/zero of=/var/tmp/bigemptyfile bs=4096k ; rm /var/tmp/bigemptyfile
+</code></pre>
+<blockquote>
+<p><strong>Lưu ý:</strong> Chờ xíu nhé, hơi lâu đấy.</p>
+</blockquote>
+<ul>
+<li><strong>Trên máy thật (Host):</strong> Nén file lại.</li>
+</ul>
+<pre><code class="language-bash"># Với VirtualBox &gt;= 6.1.4
+VBoxManage modifymedium disk /path/to/thedisk.vdi --compact
+</code></pre>
+<p><strong>👉 Với máy ảo Windows:</strong></p>
+<ul>
+<li><strong>Trên máy ảo:</strong> Chạy chống phân mảnh ổ đĩa (Defrag). Sau đó tải công cụ <strong>SDelete</strong> và chạy CMD:</li>
+</ul>
+<pre><code class="language-cmd">sdelete.exe c: -z
+</code></pre>
+<ul>
+<li><strong>Trên máy thật:</strong> Tương tự như trên.</li>
+</ul>
+<pre><code class="language-bash">VBoxManage modifymedium disk /path/to/thedisk.vdi --compact
+</code></pre>
+<h3>3. Đổi định dạng &amp; Tăng dung lượng ổ cứng 💾</h3>
+<p><strong>🔄 Chuyển từ VMDK sang VDI (để dễ nén dung lượng):</strong></p>
+<p>Nếu lỡ tạo ổ VMDK mà muốn nén, bạn phải convert sang VDI trước:</p>
+<pre><code class="language-bash">VBoxManage clonehd &quot;source.vmdk&quot; &quot;cloned.vdi&quot; --format vdi
+</code></pre>
+<p>(Nhớ <strong>backup trước</strong> cho chắc cú nha)</p>
+<p><strong>⬆️ Tăng dung lượng ổ cứng (Resize):</strong></p>
+<p>Ổ cứng ảo bị đầy? Đừng tạo máy mới, chạy lệnh này để mở rộng (Ví dụ lên 50GB):</p>
+<pre><code class="language-bash">VBoxManage modifyhd &quot;disk.vdi&quot; --resize 51200
+</code></pre>
+<p>Sau đó vào máy ảo dùng <strong>GParted</strong> để kéo dãn phân vùng ra là xong!</p>
+<h3>4. Fix lỗi máy ảo Windows &quot;chậm như rùa&quot; 🐢</h3>
+<p>Nếu bạn thấy máy ảo Windows lag kinh khủng và dưới thanh trạng thái có hiện icon con rùa màu xanh, thì thủ phạm chính là <strong>Hyper-V</strong>.</p>
+<p><strong>Cách xử lý:</strong></p>
+<ol>
+<li>Tắt tính năng <strong>Core Isolation</strong> trong Windows Defender.</li>
+<li>Tắt <strong>Hyper-V</strong> bằng lệnh PowerShell (chạy quyền Admin):</li>
+</ol>
+<pre><code class="language-powershell">bcdedit /set hypervisorlaunchtype off
+</code></pre>
+<ol start="3">
+<li>Reboot lại máy:</li>
+</ol>
+<pre><code class="language-powershell">shutdown -s -t 2
+</code></pre>
+<p>Hết rùa là máy lại chạy nhanh như gió ngay! 💨</p>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const codeBlocks = document.querySelectorAll('.post-content pre');
+
+                codeBlocks.forEach(pre => {
+                    const button = document.createElement('button');
+                    button.className = 'copy-btn';
+                    button.textContent = 'Copy';
+
+                    button.addEventListener('click', () => {
+                        const code = pre.querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.textContent = 'Copied!';
+                            setTimeout(() => {
+                                button.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy:', err);
+                            button.textContent = 'Error';
+                        });
+                    });
+
+                    pre.appendChild(button);
+                });
+            });
+        </script>
