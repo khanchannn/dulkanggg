@@ -56,6 +56,16 @@
                         bilingual
                     </a>
                     
+                    <a href="/dulkanggg/tags/devops"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        devops
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/nginx"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        nginx
+                    </a>
+                    
                         
         </div>
 
@@ -63,7 +73,88 @@
             <blockquote>
 <p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
 </blockquote>
-<p>Alo alo alo</p>
+<hr>
+<h3>Road to DevOps #1 | Web server with Nginx and Log monitoring with GoAccess 🚀</h3>
+<p>Hi everyone! 👋</p>
+<p>Welcome to the first post in my &quot;Road to DevOps&quot; series. Today, we will start with something fundamental but essential: setting up a Web Server and monitoring it.</p>
+<p>We will use <strong>Nginx</strong> as our web server and <strong>GoAccess</strong> to analyze and visualize the logs in real-time.</p>
+<p>Let&#39;s get started! 👇</p>
+<h3>1. Setting up Nginx 🌐</h3>
+<p>Nginx is a high-performance HTTP web server. It&#39;s lightweight and very popular.</p>
+<p><strong>Install Nginx:</strong>
+On Ubuntu/Debian:</p>
+<pre><code class="language-bash">sudo apt update
+sudo apt install nginx -y
+</code></pre>
+<p><strong>Check status:</strong>
+After installation, check if Nginx is running:</p>
+<pre><code class="language-bash">sudo systemctl status nginx
+</code></pre>
+<p><strong>Basic Configuration:</strong>
+Nginx configuration files are located in <code>/etc/nginx/</code>. The default site is usually defined in <code>/etc/nginx/sites-available/default</code>.</p>
+<p>You can access your server&#39;s IP address in a web browser to see the &quot;Welcome to nginx!&quot; page.</p>
+<h3>2. Setting up GoAccess 📊</h3>
+<p>GoAccess is an open source real-time web log analyzer and interactive viewer that runs in a terminal in *nix systems or through your browser.</p>
+<p><strong>Install GoAccess:</strong></p>
+<pre><code class="language-bash">echo &quot;deb http://deb.goaccess.io/ $(lsb_release -cs) main&quot; | sudo tee -a /etc/apt/sources.list.d/goaccess.list
+wget -O - https://deb.goaccess.io/gnugpg.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/goaccess.gpg add -
+sudo apt update
+sudo apt install goaccess -y
+</code></pre>
+<p><strong>Run GoAccess:</strong>
+To analyze the Nginx access log:</p>
+<pre><code class="language-bash">sudo goaccess /var/log/nginx/access.log
+</code></pre>
+<p>You will see a terminal dashboard with hits, visitors, and bandwidth metrics.</p>
+<p><strong>Generate HTML Report:</strong>
+To view a beautiful HTML dashboard, run:</p>
+<pre><code class="language-bash">sudo goaccess /var/log/nginx/access.log -o /var/www/html/report.html --log-format=COMBINED --real-time-html
+</code></pre>
+<p>Now navigate to <code>http://your-server-ip/report.html</code> to see the report!</p>
+<h3>3. Conclusion</h3>
+<p>We have successfully set up a basic web server and a monitoring tool. This is the first step in understanding how web infrastructure works.</p>
+<p>See you in the next post! Happy coding! 💻🔥</p>
+<hr>
+<h3>Road to DevOps #1 | Web Server với Nginx và Giám sát Log với GoAccess 🚀</h3>
+<p>Chào mọi người! 👋</p>
+<p>Chào mừng các bạn đến với bài viết đầu tiên trong series &quot;Road to DevOps&quot; của mình. Hôm nay, chúng ta sẽ bắt đầu với một thứ cơ bản nhưng cực kỳ quan trọng: thiết lập Web Server và giám sát nó.</p>
+<p>Chúng ta sẽ sử dụng <strong>Nginx</strong> làm web server và <strong>GoAccess</strong> để phân tích và trực quan hóa log theo thời gian thực.</p>
+<p>Bắt đầu thôi! 👇</p>
+<h3>1. Cài đặt Nginx 🌐</h3>
+<p>Nginx là một web server HTTP hiệu năng cao, nhẹ và rất phổ biến.</p>
+<p><strong>Cài đặt Nginx:</strong>
+Trên Ubuntu/Debian:</p>
+<pre><code class="language-bash">sudo apt update
+sudo apt install nginx -y
+</code></pre>
+<p><strong>Kiểm tra trạng thái:</strong>
+Sau khi cài đặt, hãy kiểm tra xem Nginx có đang chạy không:</p>
+<pre><code class="language-bash">sudo systemctl status nginx
+</code></pre>
+<p><strong>Cấu hình cơ bản:</strong>
+Các file cấu hình của Nginx nằm trong <code>/etc/nginx/</code>. Trang default thường được định nghĩa trong <code>/etc/nginx/sites-available/default</code>.</p>
+<p>Bạn có thể truy cập địa chỉ IP của server trên trình duyệt web để xem trang &quot;Welcome to nginx!&quot;.</p>
+<h3>2. Cài đặt GoAccess 📊</h3>
+<p>GoAccess là một công cụ phân tích log web thời gian thực mã nguồn mở và là trình xem tương tác chạy trên terminal trong các hệ thống *nix hoặc qua trình duyệt của bạn.</p>
+<p><strong>Cài đặt GoAccess:</strong></p>
+<pre><code class="language-bash">echo &quot;deb http://deb.goaccess.io/ $(lsb_release -cs) main&quot; | sudo tee -a /etc/apt/sources.list.d/goaccess.list
+wget -O - https://deb.goaccess.io/gnugpg.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/goaccess.gpg add -
+sudo apt update
+sudo apt install goaccess -y
+</code></pre>
+<p><strong>Chạy GoAccess:</strong>
+Để phân tích access log của Nginx:</p>
+<pre><code class="language-bash">sudo goaccess /var/log/nginx/access.log
+</code></pre>
+<p>Bạn sẽ thấy một bảng điều khiển trên terminal với số lượt truy cập, người truy cập và băng thông.</p>
+<p><strong>Tạo báo cáo HTML:</strong>
+Để xem bảng điều khiển HTML đẹp mắt, hãy chạy:</p>
+<pre><code class="language-bash">sudo goaccess /var/log/nginx/access.log -o /var/www/html/report.html --log-format=COMBINED --real-time-html
+</code></pre>
+<p>Bây giờ hãy truy cập vào <code>http://ip-server-cua-ban/report.html</code> để xem báo cáo nhé!</p>
+<h3>3. Kết luận</h3>
+<p>Chúng ta đã thiết lập thành công một web server cơ bản và một công cụ giám sát. Đây là bước đầu tiên để hiểu cách cơ sở hạ tầng web hoạt động.</p>
+<p>Hẹn gặp lại các bạn trong bài viết tiếp theo! Happy coding! 💻🔥</p>
 
         </div>
     </article>

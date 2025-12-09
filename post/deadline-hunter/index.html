@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Deadline Hunter #1
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            Deadline Hunter #1
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-09
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/devlog"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        devlog
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/n8n"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        n8n
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/ai"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ai
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/gemini"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        gemini
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/docker"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        docker
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/devops"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        devops
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>DevLog #1: How I Built &quot;Deadline Hunter&quot; with n8n and Gemini AI 🤖</h3>
+<h3>1. The Idea &amp; The Problem 💡</h3>
+<p>As a student, my biggest pain point is missing deadlines. Assignment notifications and exam schedules are usually scattered across Zalo/Telegram groups, scrolling away quickly and forgotten by everyone.</p>
+<p>I decided to build &quot;Deadline Hunter&quot; - a smart Bot. I just need to forward a message or send a photo of the whiteboard to it. It will automatically read, extract the date and time, and save it to the system to remind me later.</p>
+<h3>2. Infrastructure as Code 🏗️</h3>
+<p>Instead of manual installation, I use Docker to package everything. This ensures the dev environment is identical to the deploy environment later (DevSecOps mindset).</p>
+<p><strong>The &quot;Holy Grail&quot; <code>docker-compose.yml</code> File</strong>
+After many times fixing tunnel errors (408 timeout), here is the most stable version using Cloudflare Quick Tunnel:</p>
+<pre><code class="language-yaml">version: &#39;3.8&#39;
+
+services:
+  # 1. Database: Storage memory
+  postgres:
+    image: postgres:15-alpine
+    container_name: deadline-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin_password_123
+      POSTGRES_DB: deadline_db
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;pg_isready -U admin -d deadline_db&quot;]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Automation: The brain processing the flow
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: deadline-n8n
+    restart: always
+    ports:
+      - &quot;5678:5678&quot;
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_SECURE_COOKIE=false
+      # Link will be filled after Cloudflare starts
+      - WEBHOOK_URL=https://&lt;your-tunnel-url&gt;.trycloudflare.com
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # 3. Networking: Tunnel to Internet (Bypass NAT/Firewall)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: deadline-tunnel
+    restart: always
+    command: tunnel --url http://n8n:5678
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+</code></pre>
+<p><strong>CLI Commands Used:</strong></p>
+<pre><code class="language-bash"># Start the system
+sudo docker-compose up -d
+
+# View logs to get Tunnel link (important)
+sudo docker logs -f deadline-tunnel
+
+# Restart only n8n when updating Webhook URL
+sudo docker-compose restart n8n
+</code></pre>
+<h3>3. Database Schema Design 🗄️</h3>
+<p>I accessed the Postgres container to create the table. The table structure is designed to support user identification via Telegram ID.</p>
+<p><strong>DB Access Command:</strong></p>
+<pre><code class="language-bash">docker exec -it deadline-postgres psql -U admin -d deadline_db
+</code></pre>
+<p><strong>Initialization SQL Script:</strong></p>
+<pre><code class="language-sql">-- Users Table: Stores who is who
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    telegram_chat_id VARCHAR(50) UNIQUE,
+    full_name VARCHAR(255),
+    email VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tasks Table: Stores things to do
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    due_date TIMESTAMP,
+    is_reminded BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+</code></pre>
+<h3>4. Building the AI &quot;Brain&quot; in n8n 🧠</h3>
+<p>This is the most interesting part. The processing workflow goes through 4 steps:</p>
+<p><strong>Step 1: Telegram Trigger (The Ears)</strong></p>
+<ul>
+<li>Receive message from User.</li>
+<li>Use Webhook from Cloudflare Tunnel to ensure stable connection.</li>
+</ul>
+<p><strong>Step 2: AI Processing (The Brain - Gemini 1.5 Flash)</strong></p>
+<ul>
+<li>Use Basic LLM Chain node combined with Google Gemini Chat Model.</li>
+</ul>
+<p><strong>Prompt Engineering:</strong></p>
+<blockquote>
+<p>&quot;You are a virtual assistant. Extract the task name and deadline from the message. Today is {{ $now }}. Return a single JSON: <code>{&quot;task_name&quot;: &quot;...&quot;, &quot;due_date&quot;: &quot;YYYY-MM-DD HH:mm:ss&quot;}</code>.&quot;</p>
+</blockquote>
+<p><strong>Step 3: Data Parsing</strong>
+Since AI returns text, I use a Code node (JavaScript) to convert it into a standard JSON Object.</p>
+<pre><code class="language-javascript">const aiOutput = $input.item.json.text;
+const jsonString = aiOutput.substring(aiOutput.indexOf(&#39;{&#39;), aiOutput.lastIndexOf(&#39;}&#39;) + 1);
+return JSON.parse(jsonString);
+</code></pre>
+<p><strong>Step 4: Database Storage (Memory)</strong></p>
+<ul>
+<li>Use Postgres node to save data.</li>
+<li>Use Upsert technique (Insert if not exists, Update if exists) to handle User ID.</li>
+</ul>
+<p><strong>Data Mapping:</strong></p>
+<pre><code class="language-javascript">{{ [
+  $(&#39;Telegram Trigger&#39;).item.json.message.chat.id,
+  $(&#39;Telegram Trigger&#39;).item.json.message.chat.first_name,
+  $(&#39;Code in JavaScript&#39;).item.json.task_name,
+  $(&#39;Code in JavaScript&#39;).item.json.due_date
+] }}
+</code></pre>
+<h3>5. Lessons Learned &amp; Troubleshooting 🛠️</h3>
+<p>During the process, I encountered HTTP 408 Request Timeout error when using n8n&#39;s default tunnel.</p>
+<ul>
+<li><strong>Cause:</strong> n8n&#39;s free tunnel is unstable in Vietnam.</li>
+<li><strong>Solution:</strong> Switched to using <code>cloudflared</code> container (Quick Tunnel). Connection is much faster and more stable.</li>
+<li><strong>Lesson:</strong> Always check Node names exactly when referencing variables (e.g., Code vs Code in JavaScript). One wrong letter and the system errors out immediately.</li>
+</ul>
+<h3>6. Current Results &amp; Next Steps 🚀</h3>
+<p>Currently, I can text: &quot;Submit English homework next Friday morning&quot; and the Bot automatically saves the correct date and time to the Database.
+<strong>Next Steps (To-do list):</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Bot replies with confirmation message &quot;Saved&quot;.</li>
+<li><input disabled="" type="checkbox"> Set up Cronjob to scan Database every 30 minutes.</li>
+<li><input disabled="" type="checkbox"> Send reminder messages when due date is approaching (Notification).</li>
+</ul>
+<hr>
+<h3>DevLog #1: Tôi đã xây dựng &quot;Deadline Hunter&quot; bằng n8n và AI Gemini như thế nào? 🤖</h3>
+<h3>1. Ý tưởng &amp; Vấn đề (The Problem) 💡</h3>
+<p>Là một sinh viên, nỗi đau lớn nhất của tôi là miss deadline. Các thông báo nộp bài tập, lịch thi thường nằm rải rác trong các nhóm chat Zalo/Telegram, trôi đi rất nhanh và không ai nhớ.</p>
+<p>Tôi quyết định xây dựng &quot;Deadline Hunter&quot; - một con Bot thông minh. Tôi chỉ cần forward tin nhắn hoặc gửi ảnh chụp bảng cho nó. Nó sẽ tự đọc, tự trích xuất ngày giờ và lưu vào hệ thống để nhắc nhở tôi sau này.</p>
+<h3>2. Chuẩn bị Hạ tầng (Infrastructure as Code) 🏗️</h3>
+<p>Thay vì cài đặt thủ công, tôi sử dụng Docker để đóng gói mọi thứ. Điều này đảm bảo môi trường dev giống hệt môi trường deploy sau này (Tư duy DevSecOps).</p>
+<p><strong>File <code>docker-compose.yml</code> &quot;thần thánh&quot;</strong>
+Sau nhiều lần fix lỗi tunnel (lỗi 408 timeout), đây là phiên bản ổn định nhất sử dụng Cloudflare Quick Tunnel:</p>
+<pre><code class="language-yaml">version: &#39;3.8&#39;
+
+services:
+  # 1. Database: Nơi lưu trữ bộ nhớ
+  postgres:
+    image: postgres:15-alpine
+    container_name: deadline-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin_password_123
+      POSTGRES_DB: deadline_db
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;pg_isready -U admin -d deadline_db&quot;]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Automation: Bộ não xử lý luồng
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: deadline-n8n
+    restart: always
+    ports:
+      - &quot;5678:5678&quot;
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_SECURE_COOKIE=false
+      # Link này sẽ điền sau khi Cloudflare khởi động
+      - WEBHOOK_URL=https://&lt;your-tunnel-url&gt;.trycloudflare.com
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # 3. Networking: Đường hầm ra Internet (Bypass NAT/Firewall)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: deadline-tunnel
+    restart: always
+    command: tunnel --url http://n8n:5678
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+</code></pre>
+<p><strong>Các lệnh CLI đã dùng:</strong></p>
+<pre><code class="language-bash"># Khởi chạy hệ thống
+sudo docker-compose up -d
+
+# Xem log để lấy link Tunnel (quan trọng)
+sudo docker logs -f deadline-tunnel
+
+# Khởi động lại riêng n8n khi cập nhật Webhook URL
+sudo docker-compose restart n8n
+</code></pre>
+<h3>3. Thiết kế Cơ sở dữ liệu (Database Schema) 🗄️</h3>
+<p>Tôi truy cập vào container Postgres để tạo bảng. Cấu trúc bảng được thiết kế để hỗ trợ định danh người dùng qua Telegram ID.</p>
+<p><strong>Lệnh truy cập DB:</strong></p>
+<pre><code class="language-bash">docker exec -it deadline-postgres psql -U admin -d deadline_db
+</code></pre>
+<p><strong>Script SQL khởi tạo:</strong></p>
+<pre><code class="language-sql">-- Bảng Users: Lưu ai là ai
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    telegram_chat_id VARCHAR(50) UNIQUE,
+    full_name VARCHAR(255),
+    email VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Bảng Tasks: Lưu việc cần làm
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    due_date TIMESTAMP,
+    is_reminded BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+</code></pre>
+<h3>4. Xây dựng &quot;Bộ não&quot; AI trong n8n 🧠</h3>
+<p>Đây là phần thú vị nhất. Quy trình xử lý (Workflow) đi qua 4 bước:</p>
+<p><strong>Bước 1: Telegram Trigger (Đôi tai)</strong></p>
+<ul>
+<li>Nhận tin nhắn từ User.</li>
+<li>Sử dụng Webhook từ Cloudflare Tunnel để đảm bảo kết nối ổn định.</li>
+</ul>
+<p><strong>Bước 2: AI Processing (Bộ não - Gemini 1.5 Flash)</strong></p>
+<ul>
+<li>Sử dụng node Basic LLM Chain kết hợp Google Gemini Chat Model.</li>
+</ul>
+<p><strong>Prompt Engineering (Câu lệnh cho AI):</strong></p>
+<blockquote>
+<p>&quot;Bạn là trợ lý ảo. Trích xuất tên công việc và deadline từ tin nhắn. Hôm nay là {{ $now }}. Trả về JSON duy nhất: <code>{&quot;task_name&quot;: &quot;...&quot;, &quot;due_date&quot;: &quot;YYYY-MM-DD HH:mm:ss&quot;}</code>.&quot;</p>
+</blockquote>
+<p><strong>Bước 3: Data Parsing (Xử lý dữ liệu)</strong>
+Vì AI trả về văn bản, tôi dùng node Code (JavaScript) để chuyển nó thành JSON Object chuẩn.</p>
+<pre><code class="language-javascript">const aiOutput = $input.item.json.text;
+const jsonString = aiOutput.substring(aiOutput.indexOf(&#39;{&#39;), aiOutput.lastIndexOf(&#39;}&#39;) + 1);
+return JSON.parse(jsonString);
+</code></pre>
+<p><strong>Bước 4: Database Storage (Bộ nhớ)</strong></p>
+<ul>
+<li>Sử dụng node Postgres để lưu dữ liệu.</li>
+<li>Dùng kỹ thuật Upsert (Insert nếu chưa có, Update nếu có rồi) để xử lý User ID.</li>
+</ul>
+<p><strong>Mapping dữ liệu:</strong></p>
+<pre><code class="language-javascript">{{ [
+  $(&#39;Telegram Trigger&#39;).item.json.message.chat.id,
+  $(&#39;Telegram Trigger&#39;).item.json.message.chat.first_name,
+  $(&#39;Code in JavaScript&#39;).item.json.task_name,
+  $(&#39;Code in JavaScript&#39;).item.json.due_date
+] }}
+</code></pre>
+<h3>5. Những bài học &amp; Khắc phục sự cố (Troubleshooting) 🛠️</h3>
+<p>Trong quá trình làm, tôi đã gặp phải lỗi HTTP 408 Request Timeout khi dùng tunnel mặc định của n8n.</p>
+<ul>
+<li><strong>Nguyên nhân:</strong> Tunnel miễn phí của n8n không ổn định tại Việt Nam.</li>
+<li><strong>Giải pháp:</strong> Chuyển sang dùng container cloudflared (Quick Tunnel). Kết nối nhanh và ổn định hơn hẳn.</li>
+<li><strong>Bài học:</strong> Luôn kiểm tra tên Node chính xác khi tham chiếu biến (Ví dụ: Code vs Code in JavaScript). Sai một chữ là hệ thống báo lỗi đỏ ngay.</li>
+</ul>
+<h3>6. Kết quả hiện tại &amp; Bước tiếp theo 🚀</h3>
+<p>Hiện tại, tôi đã có thể nhắn tin: &quot;Nộp bài Tiếng Anh sáng thứ 6 tuần sau&quot; và Bot tự động lưu đúng ngày giờ vào Database.</p>
+<p><strong>Next Steps (To-do list):</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Bot phản hồi tin nhắn xác nhận &quot;Đã lưu&quot;.</li>
+<li><input disabled="" type="checkbox"> Thiết lập Cronjob quét Database mỗi 30 phút.</li>
+<li><input disabled="" type="checkbox"> Gửi tin nhắn nhắc nhở khi sắp đến hạn (Notification).</li>
+</ul>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const codeBlocks = document.querySelectorAll('.post-content pre');
+
+                codeBlocks.forEach(pre => {
+                    const button = document.createElement('button');
+                    button.className = 'copy-btn';
+                    button.textContent = 'Copy';
+
+                    button.addEventListener('click', () => {
+                        const code = pre.querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.textContent = 'Copied!';
+                            setTimeout(() => {
+                                button.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy:', err);
+                            button.textContent = 'Error';
+                        });
+                    });
+
+                    pre.appendChild(button);
+                });
+            });
+        </script>
