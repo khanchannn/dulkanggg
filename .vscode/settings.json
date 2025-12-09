@@ -1,0 +1,7 @@
+{
+    "pasteImage.path": "${projectRoot}/public/images",
+    "pasteImage.basePath": "${projectRoot}/public",
+    "pasteImage.forceUnixStyleSeparator": true,
+    "pasteImage.prefix": "/images/",
+    "pasteImage.insertPattern": "![${imageFileName}](${imageSyntaxPrefix}${imageFileName})"
+}
