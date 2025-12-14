@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Deadline Hunter #2: Upgrading AI Agent - From &#39;Note Taker&#39; to Real &#39;Virtual Assistant&#39;
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            Deadline Hunter #2: Upgrading AI Agent - From &#39;Note Taker&#39; to Real &#39;Virtual Assistant&#39;
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-14
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/devlog"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        devlog
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/n8n"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        n8n
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/ai"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        ai
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/gemini"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        gemini
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/postgres"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        postgres
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/javascript"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        javascript
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>DevLog #2: Upgrading AI Agent - From &quot;Note Taker&quot; to Real &quot;Virtual Assistant&quot; 🤖</h3>
+<p><strong>Author:</strong> Dulkang | <strong>Project:</strong> Deadline Hunter (AI Security Agent) | <strong>Tech Stack:</strong> n8n, PostgreSQL, Google Gemini 1.5 Flash, JavaScript.</p>
+<h3>1. The Challenge 💡</h3>
+<p>In DevLog #1, my Bot did a good job of &quot;Listening and Saving&quot;. I said &quot;Submit homework tomorrow&quot;, it saved to the Database. However, it was quite... &quot;mindless&quot;.</p>
+<p>The problem arose when I wanted to ask it back: &quot;Hey Bot, do I have anything this week?&quot;.</p>
+<p><strong>Old system:</strong> It would think I was assigning a new task and save a task named &quot;Do I have anything this week?&quot; to the Database. 🤦‍♂️</p>
+<p><strong>Goal:</strong> The Bot must distinguish the User&#39;s <strong>Intent</strong>: When is it Assigning (<strong>Add</strong>) and when is it Querying (<strong>Query</strong>).</p>
+<h3>2. The Solution 🏗️</h3>
+<p>I decided to refactor the Workflow, switching from a <strong>Linear</strong> model to a <strong>Routing</strong> model.</p>
+<p><strong>New processing flow diagram:</strong>
+<code>Telegram Input</code> ➔ <code>AI Agent (Classify)</code> ➔ <code>Switch (Router)</code></p>
+<p>➡️ <strong>Branch 1 (Add):</strong> Save to Postgres ➔ Report &quot;Saved&quot;.</p>
+<p>➡️ <strong>Branch 2 (Query):</strong> Select from Postgres ➔ AI Summarize ➔ Reply with list.</p>
+<h3>3. Execution Process &amp; Key Techniques 🛠️</h3>
+<h4>A. Teaching AI to classify intent (Prompt Engineering)</h4>
+<p>Instead of just extracting information, I upgraded the Prompt so Gemini returns an additional <code>intent</code> field.</p>
+<pre><code class="language-javascript">// Upgraded Prompt
+Analyze the message to determine INTENT:
+1. &quot;add&quot;: Assign new task (Example: &quot;Submit homework tomorrow&quot;).
+2. &quot;query&quot;: Ask for schedule (Example: &quot;Check deadline&quot;).
+
+Required JSON Output:
+{
+  &quot;intent&quot;: &quot;add&quot; or &quot;query&quot;,
+  &quot;task_name&quot;: &quot;...&quot;,
+  &quot;due_date&quot;: &quot;...&quot;
+}
+</code></pre>
+<h4>B. Handling Timezone &quot;Matrix&quot;</h4>
+<p>This was the most &quot;fatal&quot; bug. When I chatted at 3 PM, the Server (UTC) thought it was 8 AM. Leading to &quot;in 1 hour&quot; calculations being completely off.</p>
+<p><strong>Solution:</strong> I used Luxon in n8n and forced time casting right in the AI Prompt: <code>CURRENT TIME: {{ $now.setZone(&#39;Asia/Ho_Chi_Minh&#39;).format(&#39;yyyy-MM-dd HH:mm&#39;) }}</code>. This helps AI have a &quot;watch&quot; with standard Vietnam time to calculate relative milestones (like &quot;tomorrow morning&quot;, &quot;this afternoon&quot;, &quot;in 30 minutes&quot;).</p>
+<h4>C. &quot;Query Branch&quot; Technique</h4>
+<p>At this branch, I don&#39;t let the Bot return raw data (Raw JSON) from the Database because it looks very dry. I use a simple <strong>RAG</strong> model (Retrieval-Augmented Generation):</p>
+<ol>
+<li><strong>Retrieve:</strong> Get 5 latest tasks from SQL.</li>
+<li><strong>Generate:</strong> Feed those 5 tasks to AI Agent with prompt: <em>&quot;Summarize this list like a friendly secretary&quot;</em> to get the most natural answer.</li>
+</ol>
+<h3>4. Troubleshooting &amp; Lessons Learned 🐛</h3>
+<p>During dev, I encountered 3 major errors and here is how I overcame them:</p>
+<p>🔴 <strong>Error 1: Switch Node not working</strong></p>
+<ul>
+<li><strong>Phenomenon:</strong> Data passed through AI but got stuck at Switch.</li>
+<li><strong>Cause:</strong> AI returned String, but Switch needed JSON Object.</li>
+<li><strong>Fix:</strong> Place a <strong>Code node</strong> (<code>JSON.parse</code>) before the Switch node to decode data before routing.</li>
+</ul>
+<p>🔴 <strong>Error 2: Bot &quot;Muted&quot; when asking for schedule</strong></p>
+<ul>
+<li><strong>Phenomenon:</strong> Query branch reported SQL error.</li>
+<li><strong>Cause:</strong> I mistakenly copied the formula from the Add branch. Add branch needs 4 parameters, but Query branch only needs <code>$1</code> (Telegram ID).</li>
+<li><strong>Fix:</strong> Simplify SQL parameters and cast data type <code>$1::varchar</code> to match Database.</li>
+</ul>
+<p>🔴 <strong>Error 3: Bot Spamming messages (Loop Issue)</strong></p>
+<ul>
+<li><strong>Phenomenon:</strong> Found 5 tasks, Bot sent 5 separate messages immediately.</li>
+<li><strong>Cause:</strong> n8n&#39;s default mechanism is to run loop through each item (Run for each item).</li>
+<li><strong>Fix:</strong> Use <strong>Limit node</strong> to block the flow, allowing AI activation only once, but still allowing AI to read all data using <code>.all()</code> function.</li>
+</ul>
+<h3>5. Results &amp; Next Steps 🚀</h3>
+<p>Currently, &quot;Deadline Hunter&quot; can:
+✅ Understand context (Assign vs Ask).
+✅ Read images (OCR Vision).
+✅ Calculate time accurately according to Vietnam time.
+✅ Reply naturally, with emotion.</p>
+<p><strong>Next Steps:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Add Menu Button on Telegram (<code>/start</code>, <code>/help</code>).</li>
+<li><input disabled="" type="checkbox"> Build Dashboard Web (Frontend Next.js) to view schedule visually.</li>
+</ul>
+<hr>
+<h3>DevLog #2: Nâng cấp AI Agent - Từ &quot;Máy ghi chép&quot; thành &quot;Trợ lý ảo&quot; thực thụ 🤖</h3>
+<p><strong>Tác giả:</strong> Dulkang | <strong>Dự án:</strong> Deadline Hunter (AI Security Agent) | <strong>Tech Stack:</strong> n8n, PostgreSQL, Google Gemini 1.5 Flash, JavaScript.</p>
+<h3>1. Vấn đề &amp; Thách thức (The Challenge) 💡</h3>
+<p>Ở DevLog #1, Bot của tôi đã làm tốt việc &quot;Nghe và Lưu&quot;. Tôi bảo &quot;Mai nộp bài&quot;, nó lưu vào Database. Tuy nhiên, nó khá... &quot;vô tri&quot;.</p>
+<p>Vấn đề nảy sinh khi tôi muốn hỏi ngược lại nó: &quot;Ê Bot, tuần này tao có việc gì không?&quot;.</p>
+<p><strong>Hệ thống cũ:</strong> Nó sẽ tưởng tôi đang giao việc mới và lưu một task tên là &quot;Tuần này tao có việc gì không?&quot; vào Database. 🤦‍♂️</p>
+<p><strong>Mục tiêu:</strong> Bot phải phân biệt được <strong>Ý định (Intent)</strong> của người dùng: Khi nào là Giao việc (<strong>Add</strong>) và khi nào là Tra cứu (<strong>Query</strong>).</p>
+<h3>2. Giải pháp Kiến trúc (The Solution) 🏗️</h3>
+<p>Tôi quyết định tái cấu trúc lại Workflow, chuyển từ mô hình <strong>Tuyến tính (Linear)</strong> sang mô hình <strong>Rẽ nhánh (Routing)</strong>.</p>
+<p><strong>Sơ đồ luồng xử lý mới:</strong>
+<code>Telegram Input</code> ➔ <code>AI Agent (Phân loại)</code> ➔ <code>Switch (Bộ điều hướng)</code></p>
+<p>➡️ <strong>Nhánh 1 (Add):</strong> Lưu vào Postgres ➔ Báo &quot;Đã lưu&quot;.</p>
+<p>➡️ <strong>Nhánh 2 (Query):</strong> Select từ Postgres ➔ AI Tóm tắt ➔ Trả lời danh sách.</p>
+<h3>3. Quá trình thực thi &amp; Các kỹ thuật chính 🛠️</h3>
+<h4>A. Dạy AI phân loại ý định (Prompt Engineering)</h4>
+<p>Thay vì chỉ trích xuất thông tin, tôi nâng cấp Prompt để Gemini trả về thêm trường <code>intent</code>.</p>
+<pre><code class="language-javascript">// Prompt nâng cấp
+Phân tích tin nhắn để xác định Ý ĐỊNH:
+1. &quot;add&quot;: Giao việc mới (Ví dụ: &quot;Mai nộp bài&quot;).
+2. &quot;query&quot;: Hỏi lịch (Ví dụ: &quot;Kiểm tra deadline&quot;).
+
+Output JSON bắt buộc:
+{
+  &quot;intent&quot;: &quot;add&quot; hoặc &quot;query&quot;,
+  &quot;task_name&quot;: &quot;...&quot;,
+  &quot;due_date&quot;: &quot;...&quot;
+}
+</code></pre>
+<h4>B. Xử lý &quot;Ma trận&quot; thời gian (Timezone Handling)</h4>
+<p>Đây là bug &quot;chí mạng&quot; nhất. Khi tôi chat lúc 15h, Server (UTC) lại nghĩ là 8h sáng. Dẫn đến việc tính toán &quot;sau 1 tiếng nữa&quot; bị sai lệch hoàn toàn.</p>
+<p><strong>Giải pháp:</strong> Tôi đã sử dụng Luxon trong n8n và ép kiểu thời gian ngay trong Prompt của AI: <code>THỜI GIAN HIỆN TẠI: {{ $now.setZone(&#39;Asia/Ho_Chi_Minh&#39;).format(&#39;yyyy-MM-dd HH:mm&#39;) }}</code>. Điều này giúp AI có một &quot;chiếc đồng hồ&quot; chuẩn giờ Việt Nam để tính toán các mốc thời gian tương đối (như &quot;sáng mai&quot;, &quot;chiều nay&quot;, &quot;sau 30 phút&quot;).</p>
+<h4>C. Kỹ thuật &quot;Query Branch&quot; (Nhánh tra cứu)</h4>
+<p>Tại nhánh này, tôi không cho Bot trả về dữ liệu thô (Raw JSON) từ Database vì trông rất khô khan. Tôi sử dụng mô hình <strong>RAG</strong> đơn giản (Retrieval-Augmented Generation):</p>
+<ol>
+<li><strong>Retrieve:</strong> Lấy 5 task gần nhất từ SQL.</li>
+<li><strong>Generate:</strong> Đưa 5 task đó vào AI Agent với prompt: <em>&quot;Hãy tóm tắt danh sách này như một thư ký thân thiện&quot;</em> để có câu trả lời tự nhiên nhất.</li>
+</ol>
+<h3>4. Những Bug &quot;đau đầu&quot; &amp; Cách sửa (Troubleshooting) 🐛</h3>
+<p>Trong quá trình dev, tôi đã gặp 3 lỗi lớn và đây là cách tôi vượt qua:</p>
+<p>🔴 <strong>Lỗi 1: Switch Node không hoạt động</strong></p>
+<ul>
+<li><strong>Hiện tượng:</strong> Dữ liệu đi qua AI nhưng tắc ở Switch.</li>
+<li><strong>Nguyên nhân:</strong> AI trả về String, nhưng Switch cần JSON Object.</li>
+<li><strong>Fix:</strong> Đặt node <strong>Code</strong> (<code>JSON.parse</code>) trước node Switch để giải mã dữ liệu xong mới điều hướng.</li>
+</ul>
+<p>🔴 <strong>Lỗi 2: Bot bị &quot;Câm&quot; khi hỏi lịch</strong></p>
+<ul>
+<li><strong>Hiện tượng:</strong> Nhánh Query báo lỗi SQL.</li>
+<li><strong>Nguyên nhân:</strong> Tôi copy nhầm công thức từ nhánh Add sang. Nhánh Add cần 4 tham số, nhưng nhánh Query chỉ cần <code>$1</code> (Telegram ID).</li>
+<li><strong>Fix:</strong> Tối giản hóa tham số SQL và ép kiểu dữ liệu <code>$1::varchar</code> để khớp với Database.</li>
+</ul>
+<p>🔴 <strong>Lỗi 3: Bot Spam tin nhắn (Loop Issue)</strong></p>
+<ul>
+<li><strong>Hiện tượng:</strong> Tìm thấy 5 công việc, Bot gửi luôn 5 tin nhắn riêng lẻ.</li>
+<li><strong>Nguyên nhân:</strong> Cơ chế mặc định của n8n là chạy lặp qua từng item (Run for each item).</li>
+<li><strong>Fix:</strong> Sử dụng <strong>node Limit</strong> để chặn dòng chảy, chỉ cho phép kích hoạt AI 1 lần duy nhất, nhưng vẫn cho phép AI đọc toàn bộ dữ liệu bằng hàm <code>.all()</code>.</li>
+</ul>
+<h3>5. Kết quả &amp; Hướng phát triển 🚀</h3>
+<p>Hiện tại, &quot;Deadline Hunter&quot; đã có thể:
+✅ Hiểu ngữ cảnh (Giao việc vs Hỏi việc).
+✅ Đọc được cả hình ảnh (OCR Vision).
+✅ Tính toán thời gian chuẩn xác theo giờ Việt Nam.
+✅ Trả lời tự nhiên, có cảm xúc.</p>
+<p><strong>Next Steps:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Thêm Menu Button trên Telegram (<code>/start</code>, <code>/help</code>).</li>
+<li><input disabled="" type="checkbox"> Xây dựng Dashboard Web (Frontend Next.js) để xem lịch trực quan.</li>
+</ul>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const codeBlocks = document.querySelectorAll('.post-content pre');
+
+                codeBlocks.forEach(pre => {
+                    const button = document.createElement('button');
+                    button.className = 'copy-btn';
+                    button.textContent = 'Copy';
+
+                    button.addEventListener('click', () => {
+                        const code = pre.querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.textContent = 'Copied!';
+                            setTimeout(() => {
+                                button.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy:', err);
+                            button.textContent = 'Error';
+                        });
+                    });
+
+                    pre.appendChild(button);
+                });
+            });
+        </script>
