@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Nmap: More Than Just &#39;Run &amp; Wait&#39; – Thinking Like a Pro
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            Nmap: More Than Just &#39;Run &amp; Wait&#39; – Thinking Like a Pro
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2025-12-17
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/security"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        security
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/network"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        network
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/nmap"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        nmap
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/pentesting"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        pentesting
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/tools"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        tools
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/bilingual"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        bilingual
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <p><img src="/C:/Users/HP/.gemini/antigravity/brain/5a9dd5c9-6238-4081-b7eb-4e1002b7f019/nmap_banner_1765961254025.png" alt="Nmap Banner"></p>
+<blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>Nmap: More Than Just &quot;Type Command and Wait&quot; – A Guide to Mindset and Efficient Usage</h3>
+<p>Nmap (Network Mapper) is a &quot;legend&quot; in the world of security and network administration. If you want to know what assets exist on your network and what services they are running, Nmap is the #1 choice.</p>
+<p>However, because of its popularity, there are many funny memes about &quot;newbies&quot; using Nmap like this:</p>
+<pre><code class="language-bash">nmap -v 10.0.0.0/8
+</code></pre>
+<p>Why is this command funny? Because it shows a lack of understanding of how Nmap works. Scanning a massive network range (Class A) without optimization parameters will cause network congestion, waste time, and essentially scream &quot;I am here!&quot; to every monitoring system.</p>
+<p>This article will help you understand the mechanism of Nmap deeper so you don&#39;t become the main character in those memes.</p>
+<p><img src="/C:/Users/HP/.gemini/antigravity/brain/5a9dd5c9-6238-4081-b7eb-4e1002b7f019/nmap_network_scan_1765961389512.png" alt="Nmap Scanning Visualization"></p>
+<h3>1. The Nmap Workflow</h3>
+<p>Before typing a command, remember that Nmap simply &quot;scanning&quot;. It goes through a logical process:</p>
+<ol>
+<li><strong>Enumerate targets</strong>: Identify targets.</li>
+<li><strong>Discovery live hosts</strong>: Find out which hosts are up.</li>
+<li><strong>Reverse-DNS lookup</strong>: Reverse domain name resolution.</li>
+<li><strong>Scan ports</strong>: Scan ports.</li>
+<li><strong>Detect versions</strong>: Detect service versions.</li>
+<li><strong>Detect OS</strong>: Detect operating system.</li>
+<li><strong>Traceroute</strong>: Trace the packet path.</li>
+<li><strong>Scripts</strong>: Run scripts (NSE).</li>
+<li><strong>Write output</strong>: Save results.</li>
+</ol>
+<p>Understanding this process helps you know what you are doing at each step instead of using the tool mechanically.</p>
+<h3>2. Target Enumeration</h3>
+<p>You need to know what you are aiming for. Nmap supports many ways to define targets:</p>
+<ul>
+<li><strong>List</strong>: IP, domain name (e.g., <code>10.10.10.1</code>).</li>
+<li><strong>Range</strong>: <code>10.10.10.1-20</code> (Scan from .1 to .20).</li>
+<li><strong>Subnet</strong>: <code>10.10.10.1/30</code> (Use a Network Calculator for precision).</li>
+<li><strong>File</strong>: Use <code>-iL list_of_hosts.txt</code> to scan a list from a file.</li>
+</ul>
+<p><strong>Tip:</strong> Want to check the target list without scanning? Use <code>-sL</code>. Want to skip DNS resolution for speed? Use <code>-n</code>.</p>
+<h3>3. Host Discovery</h3>
+<p>Not scanning ports immediately is a good habit. You need to know which machines are &quot;live&quot;. Nmap handles this differently depending on your privileges and network location:</p>
+<p><strong>In Local Network:</strong>
+If run with <code>root</code> privileges, Nmap uses ARP requests (parameter <code>-PR</code>). This is the fastest and most accurate method.
+You can also use the tool <code>arp-scan -l</code> as an alternative.</p>
+<p><strong>External Network:</strong></p>
+<ul>
+<li><strong>Root</strong>: Sends ICMP echo packets, TCP ACK port 80, TCP SYN port 443... (Command: <code>sudo nmap -PE -sn ...</code>).</li>
+<li><strong>Normal User</strong>: Nmap will perform a TCP 3-way handshake by sending SYN to port 80, 443.</li>
+</ul>
+<p><strong>Note:</strong> If you only want to find live hosts without port scanning, always use the <code>-sn</code> parameter.</p>
+<h3>4. Port Scanning - The Heart of Nmap</h3>
+<p>When scanning, Ports will return important states you need to understand:</p>
+<ul>
+<li><strong>Open</strong>: There is an application listening. This is the main target for hackers (to attack) and admins (to protect).</li>
+<li><strong>Closed</strong>: The port is closed, but the server still responds. Good for determining if the machine is up.</li>
+<li><strong>Filtered</strong>: Nmap doesn&#39;t know if the port is open or closed because it&#39;s blocked by a Firewall. This is the most frustrating state and slows down the scanning process.</li>
+</ul>
+<p>Two most common scan types:</p>
+<ul>
+<li><strong>TCP Connect Scan (<code>-sT</code>)</strong>: For normal users. Completes the 3-way handshake. Easy to detect and log.</li>
+<li><strong>TCP SYN Scan (<code>-sS</code>)</strong>: Requires root. Only sends SYN packets (half-open scanning). Faster, quieter (stealthy). This is the default if you run with <code>sudo</code>.</li>
+</ul>
+<h3>5. Optimization (Don&#39;t Wait in Vain)</h3>
+<p>Scanning 65,535 ports on multiple hosts will take forever if not optimized.</p>
+<p><strong>Filter Ports:</strong></p>
+<ul>
+<li><code>-F</code>: Scan only the 100 most common ports (Fast).</li>
+<li><code>--top-ports 10</code>: Top 10 common ports.</li>
+<li><code>-p-</code>: Scan all ports (Slow, use only when necessary).</li>
+</ul>
+<p><strong>Timing Template (<code>-T</code>):</strong>
+From <code>-T0</code> (Paranoid - Very slow) to <code>-T5</code> (Insane - Very fast).</p>
+<ul>
+<li><strong>Recommended</strong>: <code>-T4</code> for labs/CTF/Learning. <code>-T1</code> if you want to hide like a &quot;Ninja&quot;.</li>
+</ul>
+<h3>6. Advanced: Version, OS &amp; Scripting</h3>
+<p>Nmap is not just a port scanner; it&#39;s a detective:</p>
+<ul>
+<li><strong>Service Detection</strong>: <code>-sV</code> (Intensity can be adjusted with <code>--version-intensity</code>).</li>
+<li><strong>OS Detection</strong>: <code>-O</code> (Based on packet responses to guess Windows or Linux...).</li>
+<li><strong>Nmap Scripting Engine (NSE)</strong>: Nmap&#39;s secret weapon.<ul>
+<li>Script directory: <code>/usr/share/nmap/scripts</code>.</li>
+<li>Run default scripts: <code>-sC</code> or <code>--script=default</code>.</li>
+<li>Example: Check for ftp vulnerabilities: <code>--script &quot;ftp-brute&quot;</code>.</li>
+</ul>
+</li>
+</ul>
+<h3>7. Saving Results (Output)</h3>
+<p>Always save scan results (especially during Pentesting).</p>
+<ul>
+<li><code>-oN</code>: Save as normal text (readable).</li>
+<li><code>-oG</code>: Grepable format (easy to filter with <code>grep</code>).</li>
+<li><code>-oX</code>: XML format (to import into other tools).</li>
+</ul>
+<p><strong>Best Practice:</strong> Use <code>-oA filename</code> to save in all 3 formats at once.</p>
+<h3>Pocket Cheatsheet</h3>
+<p>Here are a few combat-ready command combos you should remember:</p>
+<table>
+<thead>
+<tr>
+<th align="left">Purpose</th>
+<th align="left">Suggested Command</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Quick LAN Scan (Live Hosts)</strong></td>
+<td align="left"><code>sudo nmap -PR -sn 192.168.1.0/24</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Stealth Scan (Root), OS, Version, Script</strong></td>
+<td align="left"><code>sudo nmap -sS -sV -sC -O -T4 10.10.10.10</code></td>
+</tr>
+<tr>
+<td align="left"><strong>UDP Scan (Usually very slow)</strong></td>
+<td align="left"><code>sudo nmap -sU 10.10.10.10</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Full Port Scan, Save Output</strong></td>
+<td align="left"><code>nmap -p- -sV -oA scan_results 10.10.10.10</code></td>
+</tr>
+<tr>
+<td align="left"><strong>&quot;All-in-One&quot; (Aggressive)</strong></td>
+<td align="left"><code>nmap -A 10.10.10.10</code></td>
+</tr>
+</tbody></table>
+<h3>Conclusion</h3>
+<p>Nmap is a powerful tool, but its true power lies in the user. Understand your target, choose the right parameters to save time, and avoid causing a &quot;storm&quot; on the network. Happy scanning and stay safe!</p>
+<hr>
+<h3>Nmap: Không Chỉ Là &quot;Gõ Lệnh Rồi Ngồi Chờ&quot; – Hướng Dẫn Tư Duy Và Sử Dụng Hiệu Quả</h3>
+<p>Nmap (Network Mapper) là một &quot;huyền thoại&quot; trong giới bảo mật và quản trị mạng. Nếu bạn muốn biết trong mạng của mình có những tài sản (assets) nào, chúng đang chạy dịch vụ gì, thì Nmap là lựa chọn số 1.</p>
+<p>Tuy nhiên, chính vì sự phổ biến đó, có rất nhiều meme hài hước về việc &quot;newbie&quot; dùng Nmap kiểu:</p>
+<pre><code class="language-bash">nmap -v 10.0.0.0/8
+</code></pre>
+<p>Tại sao lệnh này lại buồn cười? Vì nó cho thấy sự thiếu hiểu biết về cách Nmap hoạt động. Quét một dải mạng khổng lồ (class A) mà không có tham số tối ưu sẽ gây nghẽn mạng, lãng phí thời gian và &quot;lạy ông tôi ở bụi này&quot; với các hệ thống giám sát.</p>
+<p>Bài viết này sẽ giúp bạn hiểu sâu hơn về cơ chế của Nmap để không trở thành nhân vật chính trong các meme đó.</p>
+<h3>1. Quy Trình Hoạt Động Của Nmap</h3>
+<p>Trước khi gõ lệnh, hãy nhớ Nmap không chỉ đơn giản là &quot;quét&quot;. Nó đi qua một quy trình logic:</p>
+<ol>
+<li><strong>Enumerate targets</strong>: Xác định mục tiêu.</li>
+<li><strong>Discovery live hosts</strong>: Tìm xem máy nào đang bật.</li>
+<li><strong>Reverse-DNS lookup</strong>: Phân giải tên miền ngược.</li>
+<li><strong>Scan ports</strong>: Quét cổng.</li>
+<li><strong>Detect versions</strong>: Phát hiện phiên bản dịch vụ.</li>
+<li><strong>Detect OS</strong>: Phát hiện hệ điều hành.</li>
+<li><strong>Traceroute</strong>: Dò đường đi của gói tin.</li>
+<li><strong>Scripts</strong>: Chạy các kịch bản (NSE).</li>
+<li><strong>Write output</strong>: Ghi kết quả.</li>
+</ol>
+<p>Hiểu quy trình này giúp bạn biết mình đang làm gì ở từng bước thay vì dùng tool một cách máy móc.</p>
+<h3>2. Xác Định Mục Tiêu (Target Enumeration)</h3>
+<p>Bạn cần biết mình đang nhắm vào đâu. Nmap hỗ trợ nhiều cách định nghĩa:</p>
+<ul>
+<li><strong>Danh sách</strong>: IP, tên miền (VD: <code>10.10.10.1</code>).</li>
+<li><strong>Dải (Range)</strong>: <code>10.10.10.1-20</code> (Quét từ .1 đến .20).</li>
+<li><strong>Subnet</strong>: <code>10.10.10.1/30</code> (Dùng Network Calculator để tính toán chính xác).</li>
+<li><strong>File</strong>: Dùng <code>-iL list_of_hosts.txt</code> để quét danh sách từ file.</li>
+</ul>
+<p><strong>Mẹo</strong>: Muốn kiểm tra danh sách mục tiêu mà không quét? Dùng <code>-sL</code>. Muốn bỏ qua bước phân giải DNS để nhanh hơn? Dùng <code>-n</code>.</p>
+<h3>3. Khám Phá Host (Host Discovery)</h3>
+<p>Không phải cứ quét port ngay là tốt. Bạn cần biết máy nào đang &quot;sống&quot; (live). Nmap xử lý việc này khác nhau tùy vào quyền hạn của bạn và vị trí mạng:</p>
+<p><strong>Trong mạng nội bộ (Local Network):</strong>
+Nếu chạy với quyền root, Nmap dùng ARP request (tham số <code>-PR</code>). Đây là cách nhanh và chính xác nhất.
+Bạn cũng có thể dùng tool <code>arp-scan -l</code> để thay thế.</p>
+<p><strong>Ngoài mạng nội bộ (External Network):</strong></p>
+<ul>
+<li><strong>Quyền Root</strong>: Gửi gói ICMP echo, TCP ACK port 80, TCP SYN port 443... (Lệnh: <code>sudo nmap -PE -sn ...</code>).</li>
+<li><strong>User thường</strong>: Nmap sẽ thực hiện bắt tay 3 bước (TCP 3-way handshake) gửi SYN đến port 80, 443.</li>
+</ul>
+<p><strong>Lưu ý</strong>: Nếu chỉ muốn tìm máy đang bật mà không quét port, hãy luôn dùng tham số <code>-sn</code>.</p>
+<h3>4. Port Scanning - Trái Tim Của Nmap</h3>
+<p>Khi quét, Port sẽ trả về các trạng thái quan trọng bạn cần hiểu:</p>
+<ul>
+<li><strong>Open</strong>: Có ứng dụng đang lắng nghe. Đây là mục tiêu chính của hacker (để tấn công) và admin (để bảo vệ).</li>
+<li><strong>Closed</strong>: Cổng đóng, nhưng máy chủ vẫn phản hồi. Tốt để xác định máy đang bật.</li>
+<li><strong>Filtered</strong>: Nmap không biết cổng mở hay đóng do bị Firewall chặn. Đây là trạng thái gây ức chế nhất và làm chậm quá trình quét.</li>
+</ul>
+<p>Hai kiểu quét phổ biến nhất:</p>
+<ul>
+<li><strong>TCP Connect Scan (<code>-sT</code>)</strong>: Dành cho user thường. Hoàn tất quá trình bắt tay 3 bước. Dễ bị phát hiện và ghi log.</li>
+<li><strong>TCP SYN Scan (<code>-sS</code>)</strong>: Cần quyền root. Chỉ gửi gói SYN (bắt tay dở dang). Nhanh hơn, ít ồn ào hơn (stealthy). Đây là chế độ mặc định nếu bạn chạy sudo.</li>
+</ul>
+<h3>5. Tối Ưu Hiệu Suất (Đừng Để Chờ Đợi Trong Vô Vọng)</h3>
+<p>Quét 65.535 cổng trên nhiều host sẽ tốn cả thanh xuân nếu không tối ưu.</p>
+<p><strong>Chọn lọc cổng:</strong></p>
+<ul>
+<li><code>-F</code>: Chỉ quét 100 cổng phổ biến nhất (Nhanh).</li>
+<li><code>--top-ports 10</code>: Top 10 cổng phổ biến.</li>
+<li><code>-p-</code>: Quét tất cả các cổng (Chậm, chỉ dùng khi cần thiết).</li>
+</ul>
+<p><strong>Timing Template (<code>-T</code>):</strong>
+Từ <code>-T0</code> (Paranoid - Rất chậm) đến <code>-T5</code> (Insane - Rất nhanh).</p>
+<ul>
+<li><strong>Khuyên dùng</strong>: <code>-T4</code> cho các bài lab/CTF/Học tập. <code>-T1</code> nếu muốn ẩn mình &quot;như Ninja&quot;.</li>
+</ul>
+<h3>6. Nâng Cao: Version, OS &amp; Scripting</h3>
+<p>Nmap không chỉ tìm cổng, nó còn là một thám tử:</p>
+<ul>
+<li><strong>Phát hiện dịch vụ</strong>: <code>-sV</code> (Có thể chỉnh độ sâu với <code>--version-intensity</code>).</li>
+<li><strong>Phát hiện hệ điều hành</strong>: <code>-O</code> (Dựa trên phản hồi gói tin để đoán Windows hay Linux...).</li>
+<li><strong>Nmap Scripting Engine (NSE)</strong>: Vũ khí bí mật của Nmap.<ul>
+<li>Thư mục script: <code>/usr/share/nmap/scripts</code>.</li>
+<li>Chạy script mặc định: <code>-sC</code> hoặc <code>--script=default</code>.</li>
+<li>Ví dụ: Kiểm tra lỗ hổng ftp: <code>--script &quot;ftp-brute&quot;</code>.</li>
+</ul>
+</li>
+</ul>
+<h3>7. Lưu Lại Kết Quả (Output)</h3>
+<p>Luôn luôn lưu lại kết quả quét (đặc biệt khi làm Pentest).</p>
+<ul>
+<li><code>-oN</code>: Lưu dạng text thường dễ đọc.</li>
+<li><code>-oG</code>: Dạng Grepable (dễ dùng lệnh grep để lọc).</li>
+<li><code>-oX</code>: Dạng XML (để nạp vào các tool khác).</li>
+</ul>
+<p><strong>Best Practice</strong>: Dùng <code>-oA filename</code> để lưu cả 3 định dạng cùng lúc.</p>
+<h3>Cheatsheet Bỏ Túi</h3>
+<p>Dưới đây là một vài combo lệnh thực chiến bạn nên nhớ:</p>
+<table>
+<thead>
+<tr>
+<th align="left">Mục đích</th>
+<th align="left">Lệnh gợi ý</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Quét nhanh mạng LAN (tìm máy)</strong></td>
+<td align="left"><code>sudo nmap -PR -sn 192.168.1.0/24</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Quét Stealth (Root), OS, Version, Script</strong></td>
+<td align="left"><code>sudo nmap -sS -sV -sC -O -T4 10.10.10.10</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Quét UDP (Thường rất chậm)</strong></td>
+<td align="left"><code>sudo nmap -sU 10.10.10.10</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Quét tất cả port, lưu full output</strong></td>
+<td align="left"><code>nmap -p- -sV -oA scan_results 10.10.10.10</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Lệnh &quot;Tất cả trong một&quot; (Aggressive)</strong></td>
+<td align="left"><code>nmap -A 10.10.10.10</code></td>
+</tr>
+</tbody></table>
+<h3>Lời kết</h3>
+<p>Nmap là một công cụ mạnh mẽ, nhưng sức mạnh thực sự nằm ở người sử dụng. Hãy hiểu rõ mục tiêu, chọn đúng tham số để tiết kiệm thời gian và tránh gây &quot;bão&quot; trên hệ thống mạng.</p>
+<p><strong>Chúc các bạn &quot;scan&quot; vui vẻ và an toàn!</strong></p>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2025 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const codeBlocks = document.querySelectorAll('.post-content pre');
+
+                codeBlocks.forEach(pre => {
+                    const button = document.createElement('button');
+                    button.className = 'copy-btn';
+                    button.textContent = 'Copy';
+
+                    button.addEventListener('click', () => {
+                        const code = pre.querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.textContent = 'Copied!';
+                            setTimeout(() => {
+                                button.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy:', err);
+                            button.textContent = 'Error';
+                        });
+                    });
+
+                    pre.appendChild(button);
+                });
+            });
+        </script>
