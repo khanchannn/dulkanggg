@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#202326">
+    <meta name="description" content="Khang's notes and projects on cybersecurity, security operations, and infrastructure.">
+    <title>[Project Showcase] AWS Multi-Branch CI/CD: Fast Tests, Deliberate Releases | Tự động hóa kiểm thử, kiểm soát Production</title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css?v=20260928-all-pages">
+</head>
+<body id="top">
+    <div class="container">
+        <header class="site-header">
+            <a href="/dulkanggg/" class="site-logo">
+                <img src="/dulkanggg/images/logo.png" alt="" width="40" height="40">
+                <span>Dulkanggg's Corner</span>
+            </a>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/projects">Projects</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+        </header>
+
+
+<main>
+    <article class="post-content">
+        <h1>[Project Showcase] AWS Multi-Branch CI/CD: Fast Tests, Deliberate Releases | Tự động hóa kiểm thử, kiểm soát Production</h1>
+        <div class="post-meta"><time datetime="2026-09-28">2026-09-28</time> · <a href="/dulkanggg/tags/aws">aws</a> · <a href="/dulkanggg/tags/devops">devops</a> · <a href="/dulkanggg/tags/cicd">cicd</a> · <a href="/dulkanggg/tags/codepipeline">codepipeline</a> · <a href="/dulkanggg/tags/codebuild">codebuild</a> · <a href="/dulkanggg/tags/cloudformation">cloudformation</a> · <a href="/dulkanggg/tags/project-showcase">project-showcase</a> · <a href="/dulkanggg/tags/bilingual">bilingual</a></div>
+        <div class="post-body"><blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới.</em></p>
+</blockquote>
+<hr>
+<h3>[Project Showcase] AWS Multi-Branch CI/CD: Fast Tests, Deliberate Releases</h3>
+<p>For a while, deploying a small app by hand feels manageable. Then a test gets skipped, someone uploads the wrong build, or nobody can quite remember what changed in Production. I wanted to explore a simple way to make the repeatable parts automatic while keeping a person responsible for the release that affects real users.</p>
+<p>This lab uses two CodeCommit branches and two separate CodePipelines. A push to <code>test</code> runs unit tests, packages the app, and deploys a Test stack through CloudFormation. A push to <code>main</code> runs the same checks, then stops at a manual approval action before CloudFormation can update the Production stack.</p>
+<p><img src="../../images/aws-multibranch-cicd-architecture.svg" alt="AWS CI/CD architecture: CodeCommit test and main branches feed separate CodePipeline and CodeBuild pipelines, with manual approval before Production CloudFormation deployment"></p>
+<p><em>Figure 1. Test deploys automatically; Production waits for a release lead. / Hình 1. Test được triển khai tự động; Production chờ release lead phê duyệt.</em></p>
+<h3>Why keep two pipelines?</h3>
+<p>Test and Production have different jobs. In Test, a developer needs feedback quickly. Once the branch changes, CodePipeline starts CodeBuild, which runs the Node.js unit tests and packages the AWS SAM template. The resulting package is placed in the versioned, encrypted S3 artifact bucket and CloudFormation updates the Test stack. A failed test ends the run before deployment.</p>
+<p>Production uses the same shape through the build. Its pipeline then pauses at <strong>Manual Approval</strong>. The release lead can review the commit, build result, and release notes, then approve or reject the run. Only approval allows the Production CloudFormation action to continue. The approval action can notify an SNS topic; a release lead still needs to subscribe an email endpoint to receive those notifications.</p>
+<pre><code class="language-text">push to test  → CodeBuild: test + package → S3 artifact → CloudFormation → Test
+push to main  → CodeBuild: test + package → S3 artifact → Manual approval → CloudFormation → Production
+</code></pre>
+<p>In the lab template, both pipelines build their own branch revision. Merging tested code to <code>main</code> triggers a new production build, and that pipeline&#39;s package is the one held at approval and deployed. This is not a claim that the exact S3 object from the Test run is promoted. If a team needs cryptographic promotion of the exact same artifact, I would use a single pipeline with an immutable artifact flowing between environment stages, or add an explicit artifact promotion design.</p>
+<h3>What I put in the repository</h3>
+<p>The repository contains a tiny Lambda health endpoint, dependency-free Node.js tests, an AWS SAM application template, a CodeBuild buildspec, and a CloudFormation template that creates the two pipelines. The same build checks run before packaging. The Test and Production stacks have different names, so a test deployment does not overwrite the production stack.</p>
+<p>I kept the sample application intentionally small. The useful part of this project is the release boundary: failed tests stop early, artifacts have a managed store, and Production has an explicit human decision before infrastructure changes. The template is a learning reference and still needs account-specific review, especially around IAM, rollback, alerting, artifact lifecycle, and who can approve a release.</p>
+<h3>What this does not solve by itself</h3>
+<p>A manual gate does not make a release safe automatically. Reviewers need useful test evidence, a clear change summary, and a rollback plan. Pipeline permissions should be scoped to the real repository and stacks, and higher-risk systems usually need stronger separation such as distinct AWS accounts for Test and Production. I would also add integration tests, CloudFormation change-set review, deployment alarms, and an operational rollback exercise before using this pattern for a real service.</p>
+<p>The pipeline stack creates AWS resources, so I would check the account&#39;s budget and remove the lab stacks when finished. The code is not deployed to a live AWS account as part of this portfolio write-up.</p>
+<p>You can explore the source and setup notes in the <a href="https://github.com/khanchannn/aws-multibranch-cicd-lab">AWS Multi-Branch CI/CD Lab repository</a>.</p>
+<h3>[Project Showcase] AWS Multi-Branch CI/CD: Tự động hóa kiểm thử, kiểm soát Production</h3>
+<p>Có thời điểm triển khai một ứng dụng nhỏ bằng tay vẫn khá tiện. Nhưng rồi có lần quên chạy test, có người tải nhầm bản build, hoặc cả nhóm không nhớ chính xác thay đổi nào đang nằm trên Production. Mình muốn thử một cách tự động hóa những bước lặp lại, đồng thời vẫn giữ một người chịu trách nhiệm cho lần phát hành có ảnh hưởng tới người dùng thật.</p>
+<p>Lab này dùng hai nhánh CodeCommit và hai CodePipeline riêng. Khi có thay đổi ở <code>test</code>, pipeline chạy unit test, đóng gói ứng dụng rồi tự triển khai stack Test bằng CloudFormation. Với <code>main</code>, pipeline cũng chạy cùng các bước kiểm tra và đóng gói, nhưng dừng ở bước <strong>Manual Approval</strong> trước khi CloudFormation cập nhật stack Production.</p>
+<h3>Vì sao tách thành hai pipeline?</h3>
+<p>Test và Production có mục tiêu khác nhau. Ở Test, developer cần nhận phản hồi sớm. Mỗi lần nhánh thay đổi, CodePipeline gọi CodeBuild để chạy unit test Node.js và đóng gói template AWS SAM. Gói triển khai được lưu trong S3 artifact bucket có bật versioning và mã hóa; sau đó CloudFormation cập nhật stack Test. Nếu test thất bại, pipeline dừng trước deployment.</p>
+<p>Production cũng tự động hóa tới hết bước build. Sau đó pipeline dừng tại <strong>Manual Approval</strong>. Release lead có thể xem commit, kết quả build và ghi chú phát hành rồi chọn approve hoặc reject. Chỉ khi được duyệt thì action CloudFormation cho Production mới tiếp tục. Bước approval có thể gửi notification qua SNS; release lead cần đăng ký email endpoint vào topic để nhận thông báo.</p>
+<p>Trong template của lab, hai pipeline tự build phiên bản của nhánh tương ứng. Khi code đã kiểm thử được merge vào <code>main</code>, pipeline Production chạy một lượt build mới; chính package của lượt chạy đó sẽ được giữ ở bước approval rồi triển khai. Vì vậy, đây chưa phải cơ chế đưa nguyên S3 artifact từ lần chạy Test sang Production. Nếu cần bảo đảm promotion chính xác cùng một artifact, mình sẽ dùng một pipeline duy nhất với artifact bất biến đi qua các stage môi trường, hoặc thiết kế riêng một bước promote artifact tường minh.</p>
+<h3>Nội dung trong repository</h3>
+<p>Repo có Lambda health endpoint nhỏ, unit test Node.js không cần thư viện ngoài, template ứng dụng AWS SAM, buildspec cho CodeBuild và CloudFormation template tạo hai pipeline. Pipeline chỉ đóng gói sau khi test thành công. Hai stack Test và Production có tên riêng, nên deployment ở Test không ghi đè Production.</p>
+<p>Mình cố tình giữ ứng dụng mẫu nhỏ. Phần đáng học ở đây là ranh giới phát hành: test lỗi thì dừng sớm, artifact có nơi lưu trữ, còn Production cần quyết định rõ ràng từ con người trước khi thay đổi hạ tầng. Template hiện là tài liệu học tập; trước khi dùng thật cần rà soát IAM theo account, rollback, cảnh báo, thời hạn lưu artifact và quyền phê duyệt.</p>
+<h3>Những gì mô hình này chưa tự giải quyết</h3>
+<p>Manual gate không tự làm một bản phát hành an toàn. Người duyệt vẫn cần bằng chứng test đủ hữu ích, mô tả thay đổi rõ ràng và phương án rollback. Quyền của pipeline nên được giới hạn theo repository và stack thực tế; hệ thống quan trọng thường cần tách Test và Production sang AWS account riêng. Trước khi áp dụng cho dịch vụ thật, mình sẽ bổ sung integration test, xem CloudFormation change set, alarm sau deployment và diễn tập rollback.</p>
+<p>Stack pipeline tạo tài nguyên AWS, vì vậy nên kiểm tra budget và xóa lab khi dùng xong. Bài portfolio này không triển khai project lên một AWS account đang vận hành.</p>
+<p>Bạn có thể xem mã nguồn và hướng dẫn trong <a href="https://github.com/khanchannn/aws-multibranch-cicd-lab">repository AWS Multi-Branch CI/CD Lab</a>.</p>
+</div>
+        <a class="back-link" href="/dulkanggg/">← Back to posts</a>
+    </article>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.post-content pre').forEach(pre => {
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.type = 'button';
+            button.textContent = 'Copy';
+            button.addEventListener('click', () => {
+                const code = pre.querySelector('code')?.innerText || pre.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    button.textContent = 'Copied!';
+                    setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                }).catch(() => { button.textContent = 'Error'; });
+            });
+            pre.append(button);
+        });
+    });
+</script>
+
+        <footer class="site-footer">
+            <span>© 2026 Khang</span>
+            <nav aria-label="Footer navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/projects">Projects</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+            <a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </footer>
+    </div>
+</body>
+</html>
