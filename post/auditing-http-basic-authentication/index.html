@@ -47,19 +47,44 @@
 <h3>1. Confirm what the endpoint is asking for</h3>
 <p>In an approved assessment, first make a normal request to the in-scope page and inspect the response. A <code>401</code> response with <code>WWW-Authenticate: Basic</code> indicates that the server is requesting Basic Authentication. Check that the challenge appears only on the expected resources and that the page is served over HTTPS.</p>
 <p>Use Burp Suite to inspect a request and response without changing credentials. The <code>Authorization</code> header is the relevant part of the HTTP exchange; browser metadata such as <code>User-Agent</code> does not determine the Basic Auth username or password. Avoid copying real credentials into notes, screenshots, or reports.</p>
-<h3>2. Validate expected behavior with an approved test account</h3>
-<p>For a configuration review, use a synthetic account supplied for the test or a single known test account whose owner has approved its use. In Burp Repeater, resend the captured request with that approved account and confirm the expected result: the test account should reach only the intended resource, while a request without credentials should remain denied.</p>
-<p>Burp Intruder can generate many request variations, and different payload modes can combine input sets in different ways. That capability can affect real accounts and service availability. Do not use it to guess passwords or enumerate credentials on a live login. If a formal assessment includes resilience testing, agree on the accounts, request ceiling, time window, lockout impact, and stop conditions with the system owner first; use a disposable lab and synthetic data for any repeated-request exercise.</p>
-<p>Record the status code, redirect behavior, and whether the protected content is returned. A <code>200</code> response alone is not proof of success if the application returns a generic page for both cases; compare the actual content and session behavior as well. Stop if the endpoint behaves unexpectedly or the test risks locking an account.</p>
-<h3>3. Understand ffuf&#39;s role without testing real passwords</h3>
-<p>ffuf is a web fuzzer that substitutes supplied values into requests. A helper script can format a username and password pair as <code>username:password</code>, encode it, and place it into an HTTP header. This explains how a fuzzer can interact with an HTTP authentication challenge, but it does not make password guessing safe or authorized by default.</p>
-<p>For a defensive review, keep ffuf pointed only at a disposable local lab or an explicitly approved test endpoint. Use synthetic values and a request limit agreed with the owner. Do not use leaked-password collections, broad public wordlists, or real employee accounts. If the goal is to verify the control, a known test account and a small, documented number of requests are usually enough; if the goal is to measure throttling, coordinate the test so it cannot disrupt service.</p>
+<h3>2. Build a small Burp Intruder exercise in a local lab</h3>
+<p>The following walkthrough is deliberately limited to a loopback lab at <code>http://127.0.0.1:8080/admin</code>. Configure that disposable endpoint with the synthetic credential <code>admin:abba</code>, and keep it isolated from public networks. The example uses only four characters (<code>a</code>, <code>b</code>, <code>c</code>, <code>d</code>) and four-character candidates, so Intruder generates exactly 256 requests.</p>
+<ol>
+<li>In Burp Proxy, capture a request to the local lab using any placeholder Basic Auth value. Send it to <strong>Intruder</strong>.</li>
+<li>Set the target to <code>127.0.0.1:8080</code>. In the request editor, select only the Base64 value after <code>Authorization: Basic</code> and add payload markers around it. Do not mark the word <code>Basic</code> or other headers.</li>
+<li>Choose <strong>Sniper</strong>. This attack type uses one payload set at each position in turn. Keep one marked position so the request count stays at 256.</li>
+<li>In <strong>Payloads</strong>, choose <strong>Brute forcer</strong>. Set the character set to <code>abcd</code>, with both minimum and maximum length set to <code>4</code>.</li>
+<li>Under <strong>Payload processing</strong>, add rules in this order: <strong>Add prefix</strong> with the value <code>admin:</code>, then <strong>Encode</strong> using Base64. Intruder applies processing rules in sequence, so each candidate becomes a complete <code>admin:&lt;candidate&gt;</code> string before it is encoded.</li>
+<li>Leave Base64 padding intact. A trailing <code>=</code> is valid padding and is not something to remove just because it looks unusual. Burp&#39;s optional URL-encoding setting is separate from Base64 and should only be enabled when the request format requires it.</li>
+<li>Start the attack only after checking the host and the request count. In this lab, a <code>200</code> response for the <code>admin:abba</code> candidate should differ from the <code>401</code> responses for the other candidates. Confirm by checking the returned content as well as the status code.</li>
+</ol>
+<p>The <strong>Cluster bomb</strong> attack type iterates over every combination from separate payload sets. Two usernames and two passwords produce four combinations; large sets multiply quickly. For Basic Auth, the complete <code>username:password</code> pair must be Base64-encoded as one string. Encoding the username and password separately and concatenating those encoded fragments does not produce the correct header. For a small lab exercise, prepare a short list of complete pairs, encode each pair as a whole, and test that single list with one marked position. See PortSwigger&#39;s documentation on <a href="https://portswigger.net/burp/documentation/desktop/tools/intruder/configure-attack/attack-types">attack types</a> and <a href="https://portswigger.net/burp/documentation/desktop/tools/intruder/configure-attack/processing">payload processing</a> for current UI details.</p>
+<p>Use only synthetic accounts on the local endpoint. Do not point this exercise at a public site, a shared service, or real user accounts. If the lab behaves unexpectedly, stop the run and inspect the request before continuing.</p>
+<h3>3. Run the equivalent tiny exercise with ffuf</h3>
+<p>ffuf substitutes values into requests. The <code>ffuf_basicauth.sh</code> helper from the <a href="https://github.com/ffuf/ffuf-scripts">ffuf scripts project</a> takes username and password files, forms every <code>username:password</code> pair, then Base64-encodes each complete pair for use as an <code>Authorization</code> header value.</p>
+<p>Create two small files for the local lab. They contain invented values only:</p>
+<p><code>users.txt</code></p>
+<pre><code class="language-text">admin
+viewer
+</code></pre>
+<p><code>passwords.txt</code></p>
+<pre><code class="language-text">abba
+train-01
+</code></pre>
+<p>With the helper available locally, the command for this lab is:</p>
+<pre><code class="language-bash">./ffuf_basicauth.sh users.txt passwords.txt | ffuf \
+  -w -:AUTH \
+  -u http://127.0.0.1:8080/admin \
+  -H &quot;Authorization: Basic AUTH&quot; \
+  -fc 401 -rate 1 -t 1 -maxtime 30
+</code></pre>
+<p>The target is explicitly loopback, the input is four synthetic pairs, and ffuf is capped at one request per second, one worker, and 30 seconds. <code>-fc 401</code> filters the expected rejection response so a different response can be inspected; verify the response body and lab logs before deciding that a candidate worked. ffuf&#39;s <code>-rate</code> controls requests per second, while <code>-t</code> controls concurrent workers. Do not replace the loopback URL with a third-party target or feed this example leaked-password lists.</p>
 <h3>4. Strengthen the control</h3>
 <p>Use HTTPS everywhere and choose unique, high-entropy credentials. Protect the administration page with application-level authorization as well as any gateway prompt. Where possible, use a centralized identity provider that supports individual accounts, multi-factor authentication, and prompt access revocation.</p>
 <p>Add rate limiting and monitoring at the layer that receives the authentication requests. Alert on repeated failures and unusual request patterns, but tune lockout behavior to avoid letting an attacker deny service to a legitimate user. Keep authentication logs protected and retain only the information needed to investigate events.</p>
-<p>After an authorized review, remove temporary accounts, rotate any test secrets that might have been exposed, and document the endpoint, test window, approved account, request count, and observed result. A useful report describes the control and its gaps without including working credentials.</p>
+<p>After the lab, remove temporary accounts and document the endpoint, test window, synthetic inputs, request count, and observed result. A useful report describes the control and its gaps without including working credentials.</p>
 <h3>Summary</h3>
-<p>HTTP Basic Authentication is a small, broadly compatible access gate. Its credentials are Base64-encoded in the HTTP header, so HTTPS is required, and the mechanism does not replace strong identity and authorization controls. Burp Suite and ffuf can help inspect web requests, but repeated credential testing belongs only in a specifically authorized, controlled lab. For routine validation, a known synthetic account and a small number of requests provide a safer way to confirm the expected behavior.</p>
+<p>HTTP Basic Authentication is a small, broadly compatible access gate. Its credentials are Base64-encoded in the HTTP header, so HTTPS is required, and the mechanism does not replace strong identity and authorization controls. Burp Suite and ffuf can demonstrate the request format in an isolated loopback lab using synthetic accounts, tiny inputs, and strict request limits. Keep such exercises off public services and never use real credentials.</p>
 <hr>
 <h2>🇻🇳 Tìm hiểu và đánh giá HTTP Basic Authentication</h2>
 <p>Một số website đặt thêm màn hình đăng nhập trước trang quản trị hoặc thư mục riêng tư. HTTP Basic Authentication là một cơ chế phổ biến để làm việc đó. Cách triển khai đơn giản và được hỗ trợ rộng rãi, nhưng nó chỉ là một lớp chặn: không thể biến mật khẩu yếu thành mật khẩu mạnh và không nên là lớp bảo vệ duy nhất cho ứng dụng nhạy cảm.</p>
@@ -71,19 +96,44 @@
 <h3>1. Xác nhận endpoint đang yêu cầu điều gì</h3>
 <p>Trong một đợt đánh giá được cho phép, trước tiên hãy gửi request thông thường đến trang nằm trong phạm vi và xem phản hồi. <code>401</code> kèm <code>WWW-Authenticate: Basic</code> cho biết máy chủ đang yêu cầu Basic Authentication. Kiểm tra challenge chỉ xuất hiện ở đúng tài nguyên dự kiến và trang được phục vụ qua HTTPS.</p>
 <p>Có thể dùng Burp Suite để xem request và response mà không thay đổi thông tin đăng nhập. Header <code>Authorization</code> là phần liên quan đến Basic Auth; metadata trình duyệt như <code>User-Agent</code> không quyết định username hoặc password. Tránh chép thông tin đăng nhập thật vào ghi chú, ảnh chụp màn hình hoặc báo cáo.</p>
-<h3>2. Xác minh hành vi dự kiến bằng tài khoản thử nghiệm đã duyệt</h3>
-<p>Khi rà soát cấu hình, hãy dùng tài khoản giả lập do bên phụ trách kiểm thử cung cấp hoặc một tài khoản thử nghiệm đã được chủ sở hữu cho phép. Trong Burp Repeater, gửi lại request đã bắt với tài khoản đó và xác nhận kết quả mong đợi: tài khoản thử chỉ truy cập đúng tài nguyên, còn request không có thông tin xác thực vẫn bị từ chối.</p>
-<p>Burp Intruder có thể tạo nhiều biến thể request; các chế độ payload khác nhau có thể kết hợp nhiều tập dữ liệu theo cách khác nhau. Khả năng này có thể tác động đến tài khoản thật và tính sẵn sàng của dịch vụ. Không dùng Intruder để đoán mật khẩu hoặc dò thông tin đăng nhập trên hệ thống đang hoạt động. Nếu một đợt đánh giá chính thức có kiểm tra khả năng chống lạm dụng, cần thống nhất trước với chủ hệ thống về tài khoản, số request tối đa, khung giờ, ảnh hưởng của khóa tài khoản và điều kiện dừng; mọi bài thử lặp lại nên dùng lab tách biệt và dữ liệu giả lập.</p>
-<p>Ghi lại mã trạng thái, chuyển hướng và việc nội dung được bảo vệ có được trả về hay không. Chỉ thấy phản hồi <code>200</code> chưa đủ để kết luận xác thực thành công nếu ứng dụng trả cùng một trang chung cho cả hai trường hợp; hãy so sánh nội dung thực tế và trạng thái phiên. Dừng kiểm thử nếu endpoint có biểu hiện bất thường hoặc có nguy cơ khóa tài khoản.</p>
-<h3>3. Hiểu vai trò của ffuf mà không thử mật khẩu thật</h3>
-<p>ffuf là công cụ fuzzing web, có thể thay các giá trị được cung cấp vào request. Một script hỗ trợ có thể ghép username và password thành <code>username:password</code>, mã hóa chuỗi đó rồi đặt vào header HTTP. Điều này giải thích cách một fuzzer tương tác với challenge xác thực HTTP, nhưng không mặc nhiên làm cho việc đoán mật khẩu trở nên an toàn hay được cho phép.</p>
-<p>Khi rà soát phòng thủ, chỉ trỏ ffuf vào lab cục bộ có thể hủy bỏ hoặc endpoint kiểm thử được duyệt rõ ràng. Chỉ dùng giá trị giả lập và giới hạn request đã thống nhất với chủ hệ thống. Không dùng dữ liệu mật khẩu bị rò rỉ, wordlist công khai lớn hoặc tài khoản nhân viên thật. Nếu mục tiêu là xác minh kiểm soát, một tài khoản thử đã biết và một số lượng request nhỏ, có ghi nhận thường là đủ; nếu cần đo khả năng giới hạn tốc độ, hãy phối hợp để không gây gián đoạn dịch vụ.</p>
+<h3>2. Tạo bài thực hành nhỏ bằng Burp Intruder trong lab cục bộ</h3>
+<p>Hướng dẫn dưới đây chỉ dành cho lab loopback tại <code>http://127.0.0.1:8080/admin</code>. Cấu hình endpoint tách biệt này với thông tin giả lập <code>admin:abba</code>, không kết nối ra mạng công khai. Ví dụ chỉ dùng bốn ký tự (<code>a</code>, <code>b</code>, <code>c</code>, <code>d</code>) và độ dài bốn ký tự, nên Intruder tạo đúng 256 request.</p>
+<ol>
+<li>Trong Burp Proxy, bắt request đến lab cục bộ bằng một giá trị Basic Auth bất kỳ. Gửi request đó sang <strong>Intruder</strong>.</li>
+<li>Đặt target thành <code>127.0.0.1:8080</code>. Trong trình soạn request, chỉ chọn giá trị Base64 sau <code>Authorization: Basic</code> rồi thêm payload marker bao quanh. Không đánh dấu từ <code>Basic</code> hoặc các header khác.</li>
+<li>Chọn <strong>Sniper</strong>. Kiểu tấn công này dùng một tập payload lần lượt ở từng vị trí. Giữ đúng một vị trí được đánh dấu để số request là 256.</li>
+<li>Trong <strong>Payloads</strong>, chọn <strong>Brute forcer</strong>. Đặt character set là <code>abcd</code>, cả độ dài nhỏ nhất và lớn nhất đều là <code>4</code>.</li>
+<li>Trong <strong>Payload processing</strong>, thêm các quy tắc theo thứ tự: <strong>Add prefix</strong> với giá trị <code>admin:</code>, sau đó <strong>Encode</strong> bằng Base64. Burp chạy quy tắc theo thứ tự, vì vậy mỗi candidate trở thành chuỗi đầy đủ <code>admin:&lt;candidate&gt;</code> trước khi mã hóa.</li>
+<li>Giữ nguyên padding Base64. Dấu <code>=</code> ở cuối là padding hợp lệ, không nên bỏ chỉ vì trông lạ. Tùy chọn URL-encode của Burp khác với Base64 và chỉ bật nếu định dạng request yêu cầu.</li>
+<li>Chỉ bắt đầu sau khi kiểm tra host và số request. Trong lab này, candidate <code>admin:abba</code> phải có phản hồi <code>200</code> khác với phản hồi <code>401</code> của các candidate còn lại. Hãy kiểm tra nội dung trả về bên cạnh status code.</li>
+</ol>
+<p>Kiểu <strong>Cluster bomb</strong> lần lượt thử mọi tổ hợp từ các tập payload riêng. Hai username và hai password tạo thành bốn tổ hợp; tập lớn sẽ nhân số request rất nhanh. Với Basic Auth, phải mã hóa Base64 toàn bộ cặp <code>username:password</code> như một chuỗi. Mã hóa riêng username và password rồi ghép hai phần sẽ không tạo ra header hợp lệ. Với bài thực hành nhỏ, hãy chuẩn bị danh sách ngắn gồm các cặp hoàn chỉnh, mã hóa từng cặp rồi thử bằng một payload position. Xem tài liệu PortSwigger về <a href="https://portswigger.net/burp/documentation/desktop/tools/intruder/configure-attack/attack-types">attack types</a> và <a href="https://portswigger.net/burp/documentation/desktop/tools/intruder/configure-attack/processing">payload processing</a> để biết giao diện hiện tại.</p>
+<p>Chỉ dùng tài khoản giả lập trên endpoint loopback. Không trỏ bài thực hành này vào website công khai, dịch vụ dùng chung hoặc tài khoản thật. Nếu lab có biểu hiện khác dự kiến, dừng lại và kiểm tra request trước khi tiếp tục.</p>
+<h3>3. Thực hiện bài lab nhỏ tương tự bằng ffuf</h3>
+<p>ffuf thay các giá trị vào request. Script <code>ffuf_basicauth.sh</code> trong <a href="https://github.com/ffuf/ffuf-scripts">dự án ffuf scripts</a> nhận hai file username và password, tạo từng cặp <code>username:password</code>, rồi mã hóa Base64 toàn bộ cặp để đặt vào header <code>Authorization</code>.</p>
+<p>Tạo hai file nhỏ cho lab cục bộ. Chúng chỉ chứa dữ liệu tự tạo:</p>
+<p><code>users.txt</code></p>
+<pre><code class="language-text">admin
+viewer
+</code></pre>
+<p><code>passwords.txt</code></p>
+<pre><code class="language-text">abba
+train-01
+</code></pre>
+<p>Khi đã có script trên máy, chạy lệnh sau cho lab này:</p>
+<pre><code class="language-bash">./ffuf_basicauth.sh users.txt passwords.txt | ffuf \
+  -w -:AUTH \
+  -u http://127.0.0.1:8080/admin \
+  -H &quot;Authorization: Basic AUTH&quot; \
+  -fc 401 -rate 1 -t 1 -maxtime 30
+</code></pre>
+<p>Target được cố định ở loopback, input chỉ có bốn cặp giả lập, còn ffuf bị giới hạn ở một request mỗi giây, một worker và tối đa 30 giây. <code>-fc 401</code> lọc phản hồi từ chối dự kiến để có thể xem phản hồi khác; hãy xác minh nội dung và log lab trước khi kết luận một candidate hợp lệ. <code>-rate</code> giới hạn số request mỗi giây, còn <code>-t</code> giới hạn worker chạy đồng thời. Không thay URL loopback bằng máy chủ bên thứ ba và không dùng danh sách mật khẩu bị rò rỉ cho ví dụ này.</p>
 <h3>4. Tăng cường lớp bảo vệ</h3>
 <p>Sử dụng HTTPS ở mọi nơi và chọn thông tin đăng nhập duy nhất, khó đoán. Bảo vệ trang quản trị bằng phân quyền ở cấp ứng dụng bên cạnh lớp gateway. Khi có thể, dùng nhà cung cấp danh tính tập trung hỗ trợ tài khoản cá nhân, xác thực đa yếu tố và thu hồi quyền nhanh chóng.</p>
 <p>Thiết lập giới hạn tốc độ và giám sát tại lớp tiếp nhận request xác thực. Cảnh báo khi có nhiều lần thất bại hoặc mẫu request bất thường, đồng thời điều chỉnh cơ chế khóa để tránh việc kẻ tấn công khiến người dùng hợp lệ mất quyền truy cập. Bảo vệ log xác thực và chỉ lưu thông tin cần thiết cho điều tra.</p>
-<p>Sau đợt rà soát được cấp phép, hãy xóa tài khoản tạm, đổi các bí mật thử nghiệm có thể đã bị lộ và ghi lại endpoint, khung giờ kiểm tra, tài khoản được duyệt, số request cùng kết quả quan sát được. Báo cáo nên mô tả cơ chế và điểm yếu mà không chứa thông tin đăng nhập còn sử dụng được.</p>
+<p>Sau khi kết thúc lab, hãy xóa tài khoản tạm và ghi lại endpoint, khung giờ, dữ liệu giả lập, số request cùng kết quả quan sát được. Báo cáo nên mô tả cơ chế và điểm yếu mà không chứa thông tin đăng nhập còn sử dụng được.</p>
 <h3>Tóm tắt</h3>
-<p>HTTP Basic Authentication là một lớp kiểm soát truy cập đơn giản, tương thích rộng. Thông tin đăng nhập được biểu diễn bằng Base64 trong header HTTP nên cần HTTPS; cơ chế này không thay thế hệ thống danh tính và phân quyền vững chắc. Burp Suite và ffuf có thể hỗ trợ xem xét request web, nhưng việc thử nhiều thông tin đăng nhập chỉ phù hợp trong lab được kiểm soát và có ủy quyền cụ thể. Với kiểm tra thông thường, tài khoản giả lập đã biết và một số lượng request nhỏ là cách an toàn hơn để xác nhận hành vi dự kiến.</p>
+<p>HTTP Basic Authentication là một lớp kiểm soát truy cập đơn giản, tương thích rộng. Thông tin đăng nhập được biểu diễn bằng Base64 trong header HTTP nên cần HTTPS; cơ chế này không thay thế hệ thống danh tính và phân quyền vững chắc. Burp Suite và ffuf có thể minh họa định dạng request trong lab loopback cô lập, với tài khoản giả lập, input nhỏ và giới hạn request nghiêm ngặt. Chỉ thực hiện bài lab trên dịch vụ cục bộ, không dùng thông tin đăng nhập thật.</p>
 </div>
         <a class="back-link" href="/dulkanggg/">← Back to posts</a>
     </article>
