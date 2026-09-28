@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        [Project Showcase] Xây dựng hệ thống Monitoring cho Infrastructure trên AWS
+    </title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="/dulkanggg/" class="logo">
+                <img src="/dulkanggg/images/logo.png" alt="Logo"
+                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
+                Dulkanggg's Corner
+            </a>
+            <nav>
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+                <a href="/dulkanggg/rss">RSS</a>
+            </nav>
+        </header>
+
+    <article class="post-content">
+        <h1 style="color: #e2b714;">
+            [Project Showcase] Xây dựng hệ thống Monitoring cho Infrastructure trên AWS
+        </h1>
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <span>
+                2026-09-28
+            </span>
+            
+                | Tags:
+                
+                    <a href="/dulkanggg/tags/aws"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        aws
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/monitoring"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        monitoring
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/devops"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        devops
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/prometheus"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        prometheus
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/kubernetes"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        kubernetes
+                    </a>
+                    
+                    <a href="/dulkanggg/tags/project-showcase"
+                        style="color: var(--accent-color); text-decoration: underline;">
+                        project-showcase
+                    </a>
+                    
+                        
+        </div>
+
+        <div>
+            <h1>[Project Showcase] Xây dựng hệ thống Monitoring cho Infrastructure trên AWS</h1>
+<p>Trong bài viết này, mình chia sẻ mô hình monitoring cho hạ tầng chạy trên AWS, bao gồm EC2 và Kubernetes trên EKS. Mục tiêu là tập trung metric ở một nơi, quan sát được tình trạng máy chủ, workload và ứng dụng, đồng thời gửi cảnh báo có chọn lọc để đội vận hành xử lý trước khi sự cố ảnh hưởng người dùng.</p>
+<blockquote>
+<p>Repo đi kèm chứa các cấu hình tham khảo đã lược bỏ thông tin riêng của môi trường. Hãy thay endpoint, phiên bản, quyền IAM và chính sách mạng theo AWS account của bạn trước khi triển khai.</p>
+</blockquote>
+<h2>1. Kiến trúc tổng quan</h2>
+<p><img src="../../images/aws-infrastructure-monitoring.png" alt="Sơ đồ kiến trúc monitoring cho AWS với EC2, EKS, Prometheus, Grafana và Alertmanager"></p>
+<p>Hệ thống được chia thành hai vùng mạng trong một VPC:</p>
+<ul>
+<li><strong>Public subnet:</strong> Application Load Balancer (ALB) nhận kết nối HTTPS của quản trị viên tới Grafana. Không mở trực tiếp Grafana, Prometheus hoặc Alertmanager ra Internet.</li>
+<li><strong>Private subnet:</strong> Các máy EC2 chạy Grafana, Prometheus và Alertmanager; EC2 ứng dụng, Kafka và Elasticsearch gửi metric qua exporter. EKS chạy các workload ứng dụng cùng các thành phần thu thập metric.</li>
+<li><strong>Internet Gateway và NAT Gateway:</strong> ALB nhận kết nối Internet; NAT Gateway cho phép tài nguyên private subnet đi ra ngoài khi cần cập nhật hoặc tải image. Trong production, nên cân nhắc VPC endpoints và thiết kế NAT theo yêu cầu sẵn sàng cao cũng như ngân sách.</li>
+</ul>
+<p>Luồng metric: <strong>Exporter / ứng dụng → Prometheus → Grafana</strong>. Khi rule đạt ngưỡng trong khoảng thời gian cấu hình, Prometheus gửi alert tới <strong>Alertmanager</strong>, sau đó Alertmanager nhóm và chuyển cảnh báo tới Slack hoặc email.</p>
+<h2>2. Thành phần sử dụng</h2>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Vai trò</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prometheus</td>
+<td>Scrape, lưu trữ và truy vấn time-series metrics</td>
+</tr>
+<tr>
+<td>Grafana</td>
+<td>Dashboard và khám phá dữ liệu từ Prometheus</td>
+</tr>
+<tr>
+<td>Alertmanager</td>
+<td>Nhóm, định tuyến và giới hạn lặp cảnh báo</td>
+</tr>
+<tr>
+<td>Node Exporter</td>
+<td>Thu thập metric hệ điều hành trên EC2 và node Linux</td>
+</tr>
+<tr>
+<td>kube-state-metrics</td>
+<td>Cung cấp trạng thái và metadata của Kubernetes objects</td>
+</tr>
+<tr>
+<td>Kafka / Elasticsearch exporters</td>
+<td>Chuyển metric của broker và cluster thành định dạng Prometheus</td>
+</tr>
+<tr>
+<td>Instrumentation của ứng dụng</td>
+<td>Xuất request rate, latency và số lỗi theo endpoint phù hợp</td>
+</tr>
+</tbody></table>
+<p>Trên EKS, có thể cài <code>kube-prometheus-stack</code> để quản lý Prometheus Operator, kube-state-metrics, node exporter, Grafana dashboard và rule Kubernetes. Cần rà lại thành phần nào đã có sẵn để tránh cài exporter hoặc scrape trùng.</p>
+<h2>3. Các metric cần theo dõi</h2>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Metric / trạng thái tiêu biểu</th>
+<th>Dùng để phát hiện</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>EC2 / host</td>
+<td>CPU, memory, filesystem, disk I/O, network in/out</td>
+<td>Thiếu tài nguyên, đầy đĩa, nghẽn mạng</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>Consumer lag, under-replicated partitions, bytes in/out</td>
+<td>Consumer tụt lại, replica không đồng bộ, tải tăng bất thường</td>
+</tr>
+<tr>
+<td>Elasticsearch</td>
+<td>Cluster health, JVM heap, indexing/search latency</td>
+<td>Cluster suy giảm, áp lực heap, thao tác tìm kiếm hoặc ghi chậm</td>
+</tr>
+<tr>
+<td>EKS</td>
+<td>Pod phase, restart count, container CPU/memory so với request/limit</td>
+<td>Pod Pending hoặc crash-loop, thiếu tài nguyên, restart tăng</td>
+</tr>
+<tr>
+<td>Ứng dụng</td>
+<td>Request rate, latency p95/p99, HTTP 4xx/5xx</td>
+<td>Lưu lượng biến động, phản hồi chậm, lỗi tăng</td>
+</tr>
+</tbody></table>
+<p>Metric cần có label ổn định như <code>environment</code>, <code>cluster</code>, <code>instance</code>, <code>namespace</code> và <code>service</code> để dashboard và alert lọc đúng phạm vi. Tránh đưa user ID, URL có query string hoặc giá trị có cardinality cao vào label.</p>
+<h2>4. Nguyên tắc scrape và lưu trữ</h2>
+<ul>
+<li>Dùng <code>scrape_interval</code> phù hợp với độ nhạy của từng nhóm metric; ví dụ 30–60 giây cho hạ tầng thông thường. Scrape quá dày làm tăng lưu lượng, dung lượng và chi phí vận hành.</li>
+<li>Đặt retention theo nhu cầu điều tra và dung lượng. Project này dùng mục tiêu ban đầu <strong>15 ngày</strong>; đây không phải giá trị phù hợp với mọi workload.</li>
+<li>Theo dõi chính Prometheus: dung lượng volume, tốc độ tăng dữ liệu, số series và thời gian query. Dùng <code>metric_relabel_configs</code> để loại metric không cần thiết sau khi đã xác nhận chúng không phục vụ dashboard hoặc alert nào.</li>
+<li>Với môi trường cần lưu lịch sử dài hoặc HA, đánh giá remote write / giải pháp lưu trữ dài hạn, backup, và cách phục hồi. Không xem một Prometheus instance đơn lẻ là kho lưu trữ bền vững.</li>
+</ul>
+<h2>5. Cảnh báo và giảm alert fatigue</h2>
+<p>Các rule nên chỉ rõ điều kiện, mức độ ảnh hưởng, thời gian duy trì và hướng xử lý. Ví dụ dưới đây minh họa alert khi filesystem sắp đầy; threshold cần được điều chỉnh theo loại volume và tốc độ tăng dữ liệu:</p>
+<pre><code class="language-yaml">groups:
+  - name: infrastructure.rules
+    rules:
+      - alert: HostFilesystemSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{fstype!=&quot;tmpfs&quot;,mountpoint!=&quot;/run&quot;}
+            / node_filesystem_size_bytes{fstype!=&quot;tmpfs&quot;,mountpoint!=&quot;/run&quot;}) &lt; 0.10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: &quot;Filesystem space is low on {{ $labels.instance }}&quot;
+          description: &quot;Less than 10% free on {{ $labels.mountpoint }}. Check disk growth and retention.&quot;
+</code></pre>
+<p>Để giảm cảnh báo rác:</p>
+<ol>
+<li>Phân loại <code>critical</code> và <code>warning</code>, định tuyến tới đúng người nhận.</li>
+<li>Dùng <code>for: 5m</code> cho tín hiệu cần duy trì liên tục; không áp dụng máy móc cho mọi alert.</li>
+<li>Nhóm các alert cùng cluster/service và cấu hình <code>group_wait</code>, <code>group_interval</code>, <code>repeat_interval</code> để tránh spam.</li>
+<li>Thêm <code>runbook_url</code> hoặc hướng xử lý trong annotation; định kỳ xem alert nào không có hành động tương ứng.</li>
+<li>Lưu Slack webhook và thông tin SMTP trong Kubernetes Secret hoặc secret manager; không commit credential vào Git.</li>
+</ol>
+<h2>6. Vấn đề gặp phải và cách xử lý</h2>
+<h3>Prometheus làm đầy ổ đĩa</h3>
+<p>Lưu quá nhiều series trong thời gian dài có thể làm volume tăng nhanh. Hướng xử lý là đặt retention có giới hạn, điều chỉnh scrape interval, loại bỏ metric thừa sau khi đánh giá tác động, và theo dõi tốc độ tăng dung lượng trước khi volume cạn.</p>
+<h3>Cảnh báo quá nhiều</h3>
+<p>Khi mọi bất thường đều gửi Slack ngay lập tức, cảnh báo quan trọng dễ bị bỏ qua. Chia severity, yêu cầu điều kiện duy trì bằng <code>for: 5m</code> ở những rule phù hợp, gom nhóm thông báo và rà lại ngưỡng dựa trên dữ liệu thực tế giúp kênh cảnh báo dễ sử dụng hơn.</p>
+<h2>7. Bảo mật và vận hành</h2>
+<ul>
+<li>Đặt Grafana, Prometheus và Alertmanager ở private subnet; chỉ expose giao diện cần thiết qua ALB có HTTPS, xác thực và giới hạn nguồn truy cập.</li>
+<li>Chỉ cho phép Prometheus scrape các port exporter từ security group hoặc network policy cần thiết; không mở exporter ra Internet.</li>
+<li>Tách quyền đọc dashboard khỏi quyền sửa datasource/rule; không dùng tài khoản admin mặc định.</li>
+<li>Không commit secret, token, account ID hoặc state Terraform chứa dữ liệu nhạy cảm. Dùng secret manager và backend state có mã hóa, khóa truy cập.</li>
+<li>Đặt budget alert cho NAT Gateway, EKS, EC2, EBS và truyền dữ liệu; chi phí AWS phụ thuộc region, cấu hình và thời gian chạy.</li>
+<li>Kiểm tra quy trình nâng cấp, backup và khôi phục dashboard, rule, cấu hình cũng như dữ liệu cần giữ.</li>
+</ul>
+<h2>8. Repository và phạm vi triển khai</h2>
+<p>Mã nguồn, cấu hình Prometheus, alert rules, dashboard Grafana và hướng dẫn triển khai được lưu tại <a href="https://github.com/khanchannn/aws-infrastructure-monitoring">aws-infrastructure-monitoring</a>.</p>
+<p>Repo là lab/showcase để xem cấu trúc và thử từng thành phần. Terraform/EKS có thể phát sinh chi phí AWS; hãy đọc hướng dẫn, kiểm tra plan, cấu hình quyền IAM tối thiểu và xóa tài nguyên lab sau khi thực hành. Các giá trị ví dụ không thay thế việc review bảo mật cho production.</p>
+<h2>Kết luận</h2>
+<p>Một hệ thống monitoring hữu ích cần đi từ metric có ý nghĩa tới cảnh báo có người chịu trách nhiệm và hành động cụ thể. Bắt đầu với những tín hiệu ảnh hưởng trực tiếp đến độ ổn định dịch vụ, theo dõi dung lượng lưu trữ của chính monitoring stack, rồi mở rộng dần theo nhu cầu vận hành.</p>
+
+        </div>
+    </article>
+
+    <div style="margin-top: 40px;">
+        <a href="/dulkanggg/">&larr; Back to Home</a>
+    </div>
+
+    <footer>
+    <p>&copy; 2026 Khang. All rights reserved.</p>
+    <div class="social-links">
+        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
+        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
+        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+    </div>
+</footer>
+</div> <!-- End container -->
+</body>
+
+</html>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const codeBlocks = document.querySelectorAll('.post-content pre');
+
+                codeBlocks.forEach(pre => {
+                    const button = document.createElement('button');
+                    button.className = 'copy-btn';
+                    button.textContent = 'Copy';
+
+                    button.addEventListener('click', () => {
+                        const code = pre.querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.textContent = 'Copied!';
+                            setTimeout(() => {
+                                button.textContent = 'Copy';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy:', err);
+                            button.textContent = 'Error';
+                        });
+                    });
+
+                    pre.appendChild(button);
+                });
+            });
+        </script>
