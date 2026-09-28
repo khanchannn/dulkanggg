@@ -4,8 +4,6 @@ date: "2025-12-17"
 tags: ["security", "network", "nmap", "pentesting", "tools", "bilingual"]
 ---
 
-![Nmap Banner](/C:/Users/HP/.gemini/antigravity/brain/5a9dd5c9-6238-4081-b7eb-4e1002b7f019/nmap_banner_1765961254025.png)
-
 > *🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).*
 
 ---
@@ -23,8 +21,6 @@ nmap -v 10.0.0.0/8
 Why is this command funny? Because it shows a lack of understanding of how Nmap works. Scanning a massive network range (Class A) without optimization parameters will cause network congestion, waste time, and essentially scream "I am here!" to every monitoring system.
 
 This article will help you understand the mechanism of Nmap deeper so you don't become the main character in those memes.
-
-![Nmap Scanning Visualization](/C:/Users/HP/.gemini/antigravity/brain/5a9dd5c9-6238-4081-b7eb-4e1002b7f019/nmap_network_scan_1765961389512.png)
 
 ### 1. The Nmap Workflow
 
