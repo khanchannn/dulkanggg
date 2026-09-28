@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#202326">
+    <meta name="description" content="Khang's notes and projects on cybersecurity, security operations, and infrastructure.">
+    <title>Auditing HTTP Basic Authentication in an Authorized Lab</title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css?v=20260928-all-pages">
+</head>
+<body id="top">
+    <div class="container">
+        <header class="site-header">
+            <a href="/dulkanggg/" class="site-logo">
+                <img src="/dulkanggg/images/logo.png" alt="" width="40" height="40">
+                <span>Dulkanggg's Corner</span>
+            </a>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/projects">Projects</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+        </header>
+
+
+<main>
+    <article class="post-content">
+        <h1>Auditing HTTP Basic Authentication in an Authorized Lab</h1>
+        <div class="post-meta"><time datetime="2026-09-28">2026-09-28</time> · <a href="/dulkanggg/tags/security">security</a> · <a href="/dulkanggg/tags/web">web</a> · <a href="/dulkanggg/tags/authentication">authentication</a> · <a href="/dulkanggg/tags/burp">burp</a> · <a href="/dulkanggg/tags/ffuf">ffuf</a> · <a href="/dulkanggg/tags/bilingual">bilingual</a></div>
+        <div class="post-body"><blockquote>
+<p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em></p>
+</blockquote>
+<hr>
+<h3>Auditing HTTP Basic Authentication in an Authorized Lab</h3>
+<p>HTTP Basic Authentication is a small gate that web servers can place in front of a page or directory. It is easy to configure, but it should not be mistaken for strong protection on its own.</p>
+<p>When a client authenticates, it sends a username and password together in an <code>Authorization</code> header. The pair is Base64-encoded; Base64 is only an encoding, not encryption. Use HTTPS so credentials are protected in transit, and choose a stronger identity system when the application needs more than a simple access gate.</p>
+<p>This post outlines how to assess a Basic Authentication endpoint with Burp Suite or ffuf <strong>only in a lab or on a system you are explicitly authorized to test</strong>. Keep the test narrow, use a small set of test accounts, and agree on request limits before sending traffic.</p>
+<h3>1. Confirm the authentication challenge</h3>
+<p>In a browser or an intercepting proxy, request the protected resource without credentials. A typical server responds with <code>401 Unauthorized</code> and a <code>WWW-Authenticate: Basic</code> challenge. This confirms that the resource is asking for Basic Authentication; it does not say whether the credentials are secure or whether the rest of the application is protected.</p>
+<p>For a local lab, a request can be made to a loopback address with a test account. Do not substitute a public host or real user credentials into a password-testing exercise.</p>
+<h3>2. Review a small, approved test set in Burp</h3>
+<p>If the engagement allows credential validation, capture one request to the lab endpoint and send it to Burp Intruder. Mark only the username and password fields as payload positions. A single-position strategy is useful when checking one field at a time; a paired strategy can test a deliberately small set of username/password combinations.</p>
+<p>Use synthetic accounts and a short list prepared for the lab. Observe the response code, response size, and any change in the authentication challenge to tell an accepted test account from a rejected one. Stop when the approved test is complete, and avoid retries that could lock accounts or disrupt the service.</p>
+<h3>3. Use ffuf only within the same scope</h3>
+<p>The same kind of controlled check can be performed with ffuf against a lab endpoint. Keep the target fixed to the approved host and path, limit the input to the synthetic credentials supplied for the exercise, and set a conservative request rate. Do not feed public password dumps or broad wordlists into a live login endpoint.</p>
+<p>The purpose of this check is to validate a known test case and measure how the application responds—not to discover real users&#39; passwords. If the scope, account ownership, or request limits are unclear, do not run the test until they are agreed.</p>
+<h3>4. Turn the result into a security improvement</h3>
+<p>After the assessment, remove any test accounts and review the server and application logs. A robust deployment should use HTTPS, unique and strong passwords, rate limiting, monitoring, and a sensible lockout or step-up policy. Consider replacing Basic Authentication with a modern identity provider or another mechanism that supports stronger account controls.</p>
+<p>Document the endpoint, test window, approved test accounts, request volume, and observed behavior. This makes the result reproducible without retaining or publishing real credentials.</p>
+<h3>Summary</h3>
+<p>Basic Authentication is straightforward, but its credentials are only Base64-encoded at the HTTP layer. Burp and ffuf can help validate a carefully scoped lab configuration. Authorization, synthetic accounts, conservative traffic, and defensive follow-up should define the exercise from start to finish.</p>
+<p><em>Inspired by the original write-up, <a href="https://0ut3r.space/2024/11/21/basic-access-authentication-bruteforce/">“Basic access authentication bruteforce”</a>. This article is a rewritten, lab-focused summary.</em></p>
+<hr>
+<h2>🇻🇳 Kiểm tra HTTP Basic Authentication trong lab được cấp phép</h2>
+<p>HTTP Basic Authentication là một lớp xác thực đơn giản mà máy chủ có thể đặt trước một trang hoặc thư mục. Cách cấu hình gọn nhẹ, nhưng không nên xem đây là biện pháp bảo vệ mạnh nếu đứng một mình.</p>
+<p>Khi xác thực, client gửi tên người dùng và mật khẩu trong header <code>Authorization</code>. Cặp thông tin này được mã hóa Base64; Base64 chỉ là cách biểu diễn dữ liệu, không phải mã hóa bảo mật. Hãy dùng HTTPS để bảo vệ thông tin trên đường truyền và cân nhắc hệ thống danh tính mạnh hơn nếu ứng dụng cần kiểm soát truy cập toàn diện.</p>
+<p>Bài viết này tóm tắt cách đánh giá endpoint Basic Authentication bằng Burp Suite hoặc ffuf <strong>chỉ trong lab hoặc trên hệ thống mà bạn được cho phép kiểm thử rõ ràng</strong>. Phạm vi cần hẹp, chỉ dùng tài khoản thử nghiệm và thống nhất giới hạn request trước khi bắt đầu.</p>
+<h3>1. Xác nhận challenge xác thực</h3>
+<p>Gửi request đến tài nguyên được bảo vệ mà chưa có thông tin đăng nhập. Máy chủ thường trả về <code>401 Unauthorized</code> cùng header <code>WWW-Authenticate: Basic</code>. Điều này cho biết tài nguyên yêu cầu Basic Authentication, nhưng chưa chứng minh mật khẩu an toàn hay toàn bộ ứng dụng đã được bảo vệ.</p>
+<p>Trong lab cục bộ, hãy dùng tài khoản thử nghiệm và địa chỉ loopback. Không thay bằng máy chủ công khai hoặc thông tin đăng nhập thật trong bài kiểm tra mật khẩu.</p>
+<h3>2. Kiểm tra một bộ dữ liệu nhỏ đã được duyệt bằng Burp</h3>
+<p>Nếu phạm vi cho phép xác minh thông tin đăng nhập, hãy bắt một request đến endpoint trong lab rồi chuyển sang Burp Intruder. Chỉ đánh dấu vị trí username và password làm payload. Có thể kiểm tra từng trường riêng hoặc thử một tập nhỏ các cặp username/password đã tạo sẵn cho lab.</p>
+<p>Chỉ dùng tài khoản giả lập và danh sách ngắn đã chuẩn bị. So sánh mã phản hồi, kích thước phản hồi và challenge xác thực để nhận biết kết quả chấp nhận hay từ chối. Dừng khi hoàn tất bài kiểm thử được duyệt; tránh gửi lại nhiều lần khiến tài khoản bị khóa hoặc dịch vụ bị ảnh hưởng.</p>
+<h3>3. Giữ ffuf trong cùng phạm vi</h3>
+<p>Có thể thực hiện dạng kiểm tra có kiểm soát tương tự bằng ffuf trên endpoint lab. Giữ nguyên host và đường dẫn đã được duyệt, chỉ dùng thông tin đăng nhập giả lập được cung cấp cho bài thực hành, đồng thời giới hạn tốc độ request ở mức thận trọng. Không đưa dữ liệu mật khẩu bị rò rỉ hoặc wordlist lớn vào endpoint đăng nhập đang hoạt động.</p>
+<p>Mục tiêu là xác minh một tình huống thử nghiệm đã biết và quan sát phản hồi của ứng dụng, không phải tìm mật khẩu của người dùng thật. Nếu chưa rõ phạm vi, quyền sở hữu tài khoản hoặc giới hạn lưu lượng, cần thống nhất trước khi chạy.</p>
+<h3>4. Chuyển kết quả thành cải thiện bảo mật</h3>
+<p>Sau khi đánh giá, xóa tài khoản lab và rà soát log của máy chủ, ứng dụng. Một cấu hình tốt nên có HTTPS, mật khẩu mạnh và duy nhất, giới hạn tốc độ, giám sát, cùng chính sách khóa tạm thời hoặc xác minh bổ sung phù hợp. Với nhu cầu kiểm soát tài khoản cao hơn, hãy cân nhắc chuyển sang nhà cung cấp danh tính hiện đại hoặc cơ chế xác thực khác.</p>
+<p>Ghi lại endpoint, khoảng thời gian kiểm thử, tài khoản giả lập được duyệt, số lượng request và phản hồi quan sát được. Cách này giúp tái hiện kết quả mà không phải lưu giữ hay công khai thông tin đăng nhập thật.</p>
+<h3>Tóm tắt</h3>
+<p>Basic Authentication đơn giản, nhưng ở tầng HTTP thông tin đăng nhập chỉ được biểu diễn bằng Base64. Burp và ffuf có thể hỗ trợ xác minh cấu hình lab với phạm vi chặt chẽ. Quyền kiểm thử, tài khoản giả lập, lưu lượng thận trọng và bước khắc phục cần được xác định xuyên suốt bài thực hành.</p>
+<p><em>Bài viết được viết lại và giới hạn theo hướng lab, dựa trên bài gốc <a href="https://0ut3r.space/2024/11/21/basic-access-authentication-bruteforce/">“Basic access authentication bruteforce”</a>.</em></p>
+</div>
+        <a class="back-link" href="/dulkanggg/">← Back to posts</a>
+    </article>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.post-content pre').forEach(pre => {
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.type = 'button';
+            button.textContent = 'Copy';
+            button.addEventListener('click', () => {
+                const code = pre.querySelector('code')?.innerText || pre.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    button.textContent = 'Copied!';
+                    setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                }).catch(() => { button.textContent = 'Error'; });
+            });
+            pre.append(button);
+        });
+    });
+</script>
+
+        <footer class="site-footer">
+            <span>© 2026 Khang</span>
+            <nav aria-label="Footer navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/projects">Projects</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+            <a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </footer>
+    </div>
+</body>
+</html>
