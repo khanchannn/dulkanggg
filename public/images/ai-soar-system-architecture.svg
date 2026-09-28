@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">AI-SOAR system architecture</title>
+  <desc id="desc">The monitored Ubuntu endpoint sends telemetry to Wazuh. Wazuh alerts enter n8n, which validates and deduplicates them, requests bounded Linux logs over SSH, and queries VirusTotal and AbuseIPDB with the source IP only. Ollama and Qwen3:8B create an advisory report for analyst notifications. Automated UFW containment is disabled in the public reference.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="13" markerHeight="13" refX="11" refY="6.5" orient="auto"><path d="M1 1 L12 6.5 L1 12 Z" fill="#415a77"/></marker>
+    <marker id="arrow-teal" markerWidth="13" markerHeight="13" refX="11" refY="6.5" orient="auto"><path d="M1 1 L12 6.5 L1 12 Z" fill="#087e8b"/></marker>
+    <style>
+      text{font-family:Arial,Helvetica,sans-serif;fill:#15243a}.title{font-size:46px;font-weight:700}.subtitle{font-size:22px;fill:#52647b}.zone{font-size:18px;font-weight:700;letter-spacing:1px}.heading{font-size:24px;font-weight:700}.body{font-size:19px;fill:#52647b}.small{font-size:17px;fill:#52647b}.label{font-size:16px;font-weight:700;fill:#415a77}
+    </style>
+  </defs>
+  <rect width="1400" height="900" rx="28" fill="#f4f7fb"/>
+  <path d="M0 130H1400" stroke="#d9e2ec" stroke-width="2"/>
+  <text x="58" y="69" class="title">AI-SOAR System Architecture</text>
+  <text x="60" y="105" class="subtitle">Defensive lab prototype · local AI analysis · analyst-owned response</text>
+
+  <!-- trust zones -->
+  <rect x="38" y="185" width="248" height="340" rx="20" fill="#eaf1fb" stroke="#a9bfdc" stroke-width="2"/>
+  <rect x="302" y="185" width="248" height="340" rx="20" fill="#eef5ff" stroke="#aac7e8" stroke-width="2"/>
+  <rect x="568" y="166" width="528" height="382" rx="22" fill="#eaf7f5" stroke="#94c8c1" stroke-width="2"/>
+  <rect x="1114" y="185" width="248" height="340" rx="20" fill="#fff4e9" stroke="#e8c39d" stroke-width="2"/>
+  <text x="58" y="220" class="zone" fill="#315a8a">01 · ENDPOINT</text>
+  <text x="322" y="220" class="zone" fill="#315a8a">02 · WAZUH</text>
+  <text x="590" y="201" class="zone" fill="#16746e">03 · AI-SOAR PRIVATE LAB</text>
+  <text x="1135" y="220" class="zone" fill="#a15c18">04 · ANALYST</text>
+
+  <!-- component cards -->
+  <rect x="62" y="260" width="200" height="205" rx="16" fill="#fff" stroke="#bfd0e3" stroke-width="2"/>
+  <rect x="326" y="260" width="200" height="205" rx="16" fill="#fff" stroke="#bdd1e5" stroke-width="2"/>
+  <rect x="592" y="260" width="222" height="205" rx="16" fill="#fff" stroke="#b4d8d2" stroke-width="2"/>
+  <rect x="850" y="260" width="222" height="205" rx="16" fill="#fff" stroke="#b4d8d2" stroke-width="2"/>
+  <rect x="1138" y="260" width="200" height="205" rx="16" fill="#fff" stroke="#ead1b7" stroke-width="2"/>
+
+  <text x="82" y="305" class="heading">Ubuntu host</text>
+  <text x="82" y="344" class="body">Wazuh Agent</text>
+  <text x="82" y="376" class="body">System logs</text>
+  <text x="82" y="420" class="small">SSH evidence source</text>
+  <text x="82" y="447" class="small">UFW present; no auto action</text>
+
+  <text x="346" y="305" class="heading">Wazuh</text>
+  <text x="346" y="344" class="body">Manager + Indexer</text>
+  <text x="346" y="376" class="body">Detect + retain alerts</text>
+  <text x="346" y="420" class="small">Original event is source</text>
+  <text x="346" y="447" class="small">of truth</text>
+
+  <text x="614" y="305" class="heading">n8n workflow</text>
+  <text x="614" y="344" class="body">Validate + normalize</text>
+  <text x="614" y="376" class="body">Deduplicate + enrich</text>
+  <text x="614" y="420" class="small">Coordinate evidence</text>
+  <text x="614" y="447" class="small">and report generation</text>
+
+  <text x="872" y="305" class="heading">Local model</text>
+  <text x="872" y="344" class="body">Ollama</text>
+  <text x="872" y="376" class="body">Qwen3:8B</text>
+  <text x="872" y="420" class="small">Evidence summary</text>
+  <text x="872" y="447" class="small">Advisory SOC report</text>
+
+  <text x="1158" y="305" class="heading">Notification</text>
+  <text x="1158" y="344" class="body">Discord</text>
+  <text x="1158" y="376" class="body">Telegram</text>
+  <text x="1158" y="420" class="small">Analyst checks evidence</text>
+  <text x="1158" y="447" class="small">before any response</text>
+
+  <!-- primary event and analysis flow -->
+  <path d="M262 330H326M526 330H592M814 330H850M1072 330H1138" fill="none" stroke="#415a77" stroke-width="4" marker-end="url(#arrow)"/>
+  <!-- external reputation boundary -->
+  <rect x="460" y="640" width="480" height="138" rx="20" fill="#fff" stroke="#d8e2ec" stroke-width="2"/>
+  <text x="488" y="680" class="zone" fill="#66758a">EXTERNAL REPUTATION SERVICES</text>
+  <text x="488" y="722" class="heading">VirusTotal · AbuseIPDB</text>
+  <text x="488" y="752" class="small">Only the validated source IP is sent for lookup.</text>
+  <path d="M702 465V640" fill="none" stroke="#087e8b" stroke-width="4" stroke-dasharray="9 8" marker-end="url(#arrow-teal)"/>
+  <text x="720" y="576" class="label">IP lookup</text>
+
+  <!-- read-only log context path back to endpoint -->
+  <path d="M625 465V578H160V465" fill="none" stroke="#087e8b" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#arrow-teal)"/>
+  <text x="258" y="568" class="label">bounded SSH log retrieval</text>
+
+  <!-- safe response status -->
+  <rect x="986" y="640" width="376" height="138" rx="20" fill="#fff1ef" stroke="#e3b0a8" stroke-width="2"/>
+  <text x="1014" y="680" class="zone" fill="#a33c32">RESPONSE SAFETY</text>
+  <text x="1014" y="722" class="heading" fill="#a33c32">UFW automation disabled</text>
+  <text x="1014" y="752" class="small">No firewall node in the public workflow.</text>
+
+  <text x="58" y="850" class="small">Threat-intelligence results support investigation; they are not a verdict. This lab reference does not claim validated autonomous containment.</text>
+</svg>

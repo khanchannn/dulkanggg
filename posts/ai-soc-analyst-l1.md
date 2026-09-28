@@ -14,9 +14,17 @@ This started with a practical question: could we make repetitive Level 1 alert t
 
 We kept the first version inside a lab. Wazuh remained the source of security alerts and evidence; n8n handled the workflow; and Qwen3:8B ran locally through Ollama to summarize bounded log evidence and draft an incident report. VirusTotal and AbuseIPDB added reputation context for a source IP, while Discord and Telegram were notification channels. That still sends an indicator to external services, so “local AI” does not mean that every piece of data stays local.
 
+![AI-SOAR system architecture showing Wazuh, n8n, local Ollama analysis, threat-intelligence boundaries, and analyst review](../../images/ai-soar-system-architecture.svg)
+
+*Figure 1. System architecture for the redacted lab reference. Automated UFW containment is disabled. / Hình 1. Kiến trúc hệ thống cho bản lab đã lược bỏ thông tin riêng. Tự động chặn UFW đang tắt.*
+
 ### Turning the idea into a flow
 
 Before wiring nodes together, we mapped the boundaries: the monitored Linux endpoint, Wazuh, the orchestration and local model host, and external reputation and notification services. Then we built the flow in smaller steps: receive a Wazuh alert, validate and normalize it, suppress duplicates, enrich the source IP, collect a limited amount of endpoint context over SSH, ask the local model to extract evidence, assemble a report, and notify an analyst.
+
+![AI-SOAR n8n workflow overview with input validation, reputation and Linux evidence paths, two local AI stages, report delivery, error handling, and disabled containment](../../images/ai-soar-workflow.svg)
+
+*Figure 2. High-level n8n workflow; the public reference has no firewall execution node. / Hình 2. Luồng n8n ở mức tổng quan; bản tham khảo công khai không có node thực thi firewall.*
 
 Splitting the model work into two stages made the responsibilities easier to review. The first stage summarizes relevant log evidence. The second combines that summary with the original alert and threat-intelligence results to draft a report. The model can help explain evidence, but its prose is advisory; it does not get authority to run a firewall command.
 
