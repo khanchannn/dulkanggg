@@ -1,63 +1,58 @@
 ---
-title: "[Project Showcase] Xây dựng hệ thống Monitoring cho Infrastructure trên AWS"
+title: "[Project Showcase] AWS Infrastructure Monitoring | Xây dựng hệ thống Monitoring trên AWS"
 date: "2026-09-28"
-tags: ["aws", "monitoring", "devops", "prometheus", "kubernetes", "project-showcase"]
+tags: ["aws", "monitoring", "devops", "prometheus", "kubernetes", "project-showcase", "bilingual"]
 ---
 
-# [Project Showcase] Xây dựng hệ thống Monitoring cho Infrastructure trên AWS
+> *🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).* 
 
-Trong bài viết này, mình chia sẻ mô hình monitoring cho hạ tầng chạy trên AWS, bao gồm EC2 và Kubernetes trên EKS. Mục tiêu là tập trung metric ở một nơi, quan sát được tình trạng máy chủ, workload và ứng dụng, đồng thời gửi cảnh báo có chọn lọc để đội vận hành xử lý trước khi sự cố ảnh hưởng người dùng.
+---
 
-> Repo đi kèm chứa các cấu hình tham khảo đã lược bỏ thông tin riêng của môi trường. Hãy thay endpoint, phiên bản, quyền IAM và chính sách mạng theo AWS account của bạn trước khi triển khai.
+### [Project Showcase] AWS Infrastructure Monitoring for EC2 and EKS 🚀
 
-## 1. Kiến trúc tổng quan
+Hi everyone! 👋
 
-![Sơ đồ kiến trúc monitoring cho AWS với EC2, EKS, Prometheus, Grafana và Alertmanager](../../images/aws-infrastructure-monitoring.png)
+I want to share a monitoring setup for infrastructure running on AWS: EC2 instances, an EKS cluster, and the services around them. The goal was pretty simple to explain, but harder to get right in practice: when something feels slow or unhealthy, I want to see enough of the system in one place to start asking the right questions.
 
-Hệ thống được chia thành hai vùng mạng trong một VPC:
+The two things that taught me the most were less exciting than a new dashboard. Prometheus kept collecting data until its disk started to run short, and Slack became noisy when every alert arrived as if it were urgent. I’ll walk through the architecture first, then share what I changed and what I learned from those problems.
 
-- **Public subnet:** Application Load Balancer (ALB) nhận kết nối HTTPS của quản trị viên tới Grafana. Không mở trực tiếp Grafana, Prometheus hoặc Alertmanager ra Internet.
-- **Private subnet:** Các máy EC2 chạy Grafana, Prometheus và Alertmanager; EC2 ứng dụng, Kafka và Elasticsearch gửi metric qua exporter. EKS chạy các workload ứng dụng cùng các thành phần thu thập metric.
-- **Internet Gateway và NAT Gateway:** ALB nhận kết nối Internet; NAT Gateway cho phép tài nguyên private subnet đi ra ngoài khi cần cập nhật hoặc tải image. Trong production, nên cân nhắc VPC endpoints và thiết kế NAT theo yêu cầu sẵn sàng cao cũng như ngân sách.
+### 1. The Architecture
 
-Luồng metric: **Exporter / ứng dụng → Prometheus → Grafana**. Khi rule đạt ngưỡng trong khoảng thời gian cấu hình, Prometheus gửi alert tới **Alertmanager**, sau đó Alertmanager nhóm và chuyển cảnh báo tới Slack hoặc email.
+![AWS monitoring architecture for EC2, EKS, Prometheus, Grafana and Alertmanager](../../images/aws-infrastructure-monitoring.png)
 
-## 2. Thành phần sử dụng
+The system is placed inside a VPC with public and private subnets. The public side contains the Application Load Balancer (ALB) used by administrators to reach Grafana over HTTPS. Grafana, Prometheus and Alertmanager stay in private subnets; the exporter endpoints should not be exposed directly to the Internet. A NAT Gateway provides outbound access when private resources need it.
 
-| Thành phần | Vai trò |
-| --- | --- |
-| Prometheus | Scrape, lưu trữ và truy vấn time-series metrics |
-| Grafana | Dashboard và khám phá dữ liệu từ Prometheus |
-| Alertmanager | Nhóm, định tuyến và giới hạn lặp cảnh báo |
-| Node Exporter | Thu thập metric hệ điều hành trên EC2 và node Linux |
-| kube-state-metrics | Cung cấp trạng thái và metadata của Kubernetes objects |
-| Kafka / Elasticsearch exporters | Chuyển metric của broker và cluster thành định dạng Prometheus |
-| Instrumentation của ứng dụng | Xuất request rate, latency và số lỗi theo endpoint phù hợp |
+The metric path is easier to follow than the network diagram: **Node Exporter and application exporters collect metrics → Prometheus scrapes and stores them → Grafana turns them into dashboards**. When a Prometheus rule stays true long enough, Prometheus sends the alert to **Alertmanager**, which groups it and routes it to Slack or email.
 
-Trên EKS, có thể cài `kube-prometheus-stack` để quản lý Prometheus Operator, kube-state-metrics, node exporter, Grafana dashboard và rule Kubernetes. Cần rà lại thành phần nào đã có sẵn để tránh cài exporter hoặc scrape trùng.
+The diagram includes EC2 hosts for the monitoring stack and services such as Kafka and Elasticsearch, along with application and monitoring pods in EKS. The exact connection between the in-cluster Prometheus and the central monitoring instance depends on the environment; whichever path is used, it should stay private and have a clear owner.
 
-## 3. Các metric cần theo dõi
+### 2. What I Wanted to See
 
-| Nhóm | Metric / trạng thái tiêu biểu | Dùng để phát hiện |
+I did not want a dashboard full of numbers just because an exporter could produce them. I focused on signals that help answer “what changed?” and “where should I look next?”
+
+| Area | Metrics I watch | What they can tell me |
 | --- | --- | --- |
-| EC2 / host | CPU, memory, filesystem, disk I/O, network in/out | Thiếu tài nguyên, đầy đĩa, nghẽn mạng |
-| Kafka | Consumer lag, under-replicated partitions, bytes in/out | Consumer tụt lại, replica không đồng bộ, tải tăng bất thường |
-| Elasticsearch | Cluster health, JVM heap, indexing/search latency | Cluster suy giảm, áp lực heap, thao tác tìm kiếm hoặc ghi chậm |
-| EKS | Pod phase, restart count, container CPU/memory so với request/limit | Pod Pending hoặc crash-loop, thiếu tài nguyên, restart tăng |
-| Ứng dụng | Request rate, latency p95/p99, HTTP 4xx/5xx | Lưu lượng biến động, phản hồi chậm, lỗi tăng |
+| EC2 / host | CPU, memory, disk I/O, filesystem space, network traffic | Whether a host is short on resources or a disk is filling up |
+| Kafka | Consumer lag, under-replicated partitions, bytes in/out | Whether consumers are falling behind or brokers are under pressure |
+| Elasticsearch | Cluster health, JVM heap, indexing and search latency | Whether the cluster is becoming unhealthy or requests are slowing down |
+| EKS | Pod status, restarts, CPU/memory requests and limits | Whether workloads are pending, restarting or hitting resource limits |
+| Application | Request rate, latency, HTTP 4xx/5xx rates | Whether users are seeing slower responses or more errors |
 
-Metric cần có label ổn định như `environment`, `cluster`, `instance`, `namespace` và `service` để dashboard và alert lọc đúng phạm vi. Tránh đưa user ID, URL có query string hoặc giá trị có cardinality cao vào label.
+Node Exporter covers host-level metrics. Kubernetes state needs Kubernetes-aware metrics such as kube-state-metrics, while Kafka and Elasticsearch need their exporters. Applications need to expose metrics in a format Prometheus can scrape. I keep labels such as `environment`, `cluster`, `namespace` and `service` consistent so I can compare related signals without creating a different dashboard for every host.
 
-## 4. Nguyên tắc scrape và lưu trữ
+### 3. The First Lesson: Prometheus Needs a Disk Budget
 
-- Dùng `scrape_interval` phù hợp với độ nhạy của từng nhóm metric; ví dụ 30–60 giây cho hạ tầng thông thường. Scrape quá dày làm tăng lưu lượng, dung lượng và chi phí vận hành.
-- Đặt retention theo nhu cầu điều tra và dung lượng. Project này dùng mục tiêu ban đầu **15 ngày**; đây không phải giá trị phù hợp với mọi workload.
-- Theo dõi chính Prometheus: dung lượng volume, tốc độ tăng dữ liệu, số series và thời gian query. Dùng `metric_relabel_configs` để loại metric không cần thiết sau khi đã xác nhận chúng không phục vụ dashboard hoặc alert nào.
-- Với môi trường cần lưu lịch sử dài hoặc HA, đánh giá remote write / giải pháp lưu trữ dài hạn, backup, và cách phục hồi. Không xem một Prometheus instance đơn lẻ là kho lưu trữ bền vững.
+At first, keeping more metrics sounded like the safe choice. Then the Prometheus data grew and the EC2 disk began to fill. That was a useful reminder that monitoring has to be monitored too.
 
-## 5. Cảnh báo và giảm alert fatigue
+I set a **15-day retention target**, increased the scrape interval where minute-level detail was enough, and filtered out metrics that were not helping a dashboard or an alert. Those changes reduced unnecessary data growth while keeping the signals I used for troubleshooting. Retention and scrape frequency still need to fit the workload; 15 days is the starting point for this setup, not a universal answer.
 
-Các rule nên chỉ rõ điều kiện, mức độ ảnh hưởng, thời gian duy trì và hướng xử lý. Ví dụ dưới đây minh họa alert khi filesystem sắp đầy; threshold cần được điều chỉnh theo loại volume và tốc độ tăng dữ liệu:
+I also keep an eye on Prometheus disk usage, series count and query performance. If longer history or higher availability is required, a single Prometheus process with local disk is not enough by itself; storage, backup and recovery need their own plan.
+
+### 4. The Second Lesson: Fewer, Better Alerts
+
+The other lesson came from Slack. When too many low-value alerts arrived together, it became harder to spot the ones that needed action. I split alerts into **Critical** and **Warning**, grouped related notifications, and used `for: 5m` for conditions that should remain true before notifying someone.
+
+Here is a small example for low filesystem space. The threshold is only an example; I would tune it to the volume, workload and time needed to respond.
 
 ```yaml
 groups:
@@ -75,39 +70,100 @@ groups:
           description: "Less than 10% free on {{ $labels.mountpoint }}. Check disk growth and retention."
 ```
 
-Để giảm cảnh báo rác:
+`for: 5m` helps avoid reacting to a short spike, but it should not be copied into every rule automatically. A good alert should say what is affected and point to a useful next step. Slack webhooks and email credentials belong in a secret store, never in the repository.
 
-1. Phân loại `critical` và `warning`, định tuyến tới đúng người nhận.
-2. Dùng `for: 5m` cho tín hiệu cần duy trì liên tục; không áp dụng máy móc cho mọi alert.
-3. Nhóm các alert cùng cluster/service và cấu hình `group_wait`, `group_interval`, `repeat_interval` để tránh spam.
-4. Thêm `runbook_url` hoặc hướng xử lý trong annotation; định kỳ xem alert nào không có hành động tương ứng.
-5. Lưu Slack webhook và thông tin SMTP trong Kubernetes Secret hoặc secret manager; không commit credential vào Git.
+### 5. A Few Things I Keep in Mind
 
-## 6. Vấn đề gặp phải và cách xử lý
+- Keep Grafana, Prometheus, Alertmanager and exporters on private network paths. If Grafana is reached through an ALB, use HTTPS, authentication and source restrictions.
+- Let Prometheus reach only the exporter ports it needs. Opening an exporter to the public Internet is not a shortcut worth taking.
+- Keep thresholds, scrape intervals and retention tied to observed data and operational needs; every extra series and every additional AWS network path has a cost.
+- Treat dashboards and alert rules as configuration that should be reviewed, backed up and restored deliberately.
+- Use AWS budgets and check the expected cost of EC2, EKS, NAT Gateway, EBS and data transfer before running a lab for a long time.
 
-### Prometheus làm đầy ổ đĩa
+The repository that accompanies this write-up contains a sanitized reference configuration: a local Docker Compose demo, Prometheus targets and rules, an Alertmanager example, Grafana provisioning, and sample Helm values for an existing EKS cluster. It does not create AWS resources on its own, and its placeholder Slack URL is intentionally unusable.
 
-Lưu quá nhiều series trong thời gian dài có thể làm volume tăng nhanh. Hướng xử lý là đặt retention có giới hạn, điều chỉnh scrape interval, loại bỏ metric thừa sau khi đánh giá tác động, và theo dõi tốc độ tăng dung lượng trước khi volume cạn.
+### Closing Thoughts
 
-### Cảnh báo quá nhiều
+This project reminded me that monitoring is not about collecting every possible metric. It is about having enough context to notice a problem, understand where it might be coming from, and send an alert that someone can actually act on. The disk issue and the noisy Slack channel were frustrating at the time, but fixing them made the setup much more useful.
 
-Khi mọi bất thường đều gửi Slack ngay lập tức, cảnh báo quan trọng dễ bị bỏ qua. Chia severity, yêu cầu điều kiện duy trì bằng `for: 5m` ở những rule phù hợp, gom nhóm thông báo và rà lại ngưỡng dựa trên dữ liệu thực tế giúp kênh cảnh báo dễ sử dụng hơn.
+You can find the project files here: [aws-infrastructure-monitoring](https://github.com/khanchannn/aws-infrastructure-monitoring).
 
-## 7. Bảo mật và vận hành
+---
 
-- Đặt Grafana, Prometheus và Alertmanager ở private subnet; chỉ expose giao diện cần thiết qua ALB có HTTPS, xác thực và giới hạn nguồn truy cập.
-- Chỉ cho phép Prometheus scrape các port exporter từ security group hoặc network policy cần thiết; không mở exporter ra Internet.
-- Tách quyền đọc dashboard khỏi quyền sửa datasource/rule; không dùng tài khoản admin mặc định.
-- Không commit secret, token, account ID hoặc state Terraform chứa dữ liệu nhạy cảm. Dùng secret manager và backend state có mã hóa, khóa truy cập.
-- Đặt budget alert cho NAT Gateway, EKS, EC2, EBS và truyền dữ liệu; chi phí AWS phụ thuộc region, cấu hình và thời gian chạy.
-- Kiểm tra quy trình nâng cấp, backup và khôi phục dashboard, rule, cấu hình cũng như dữ liệu cần giữ.
+### [Project Showcase] Xây dựng hệ thống Monitoring cho Infrastructure trên AWS 🚀
 
-## 8. Repository và phạm vi triển khai
+Chào mọi người! 👋
 
-Mã nguồn, cấu hình Prometheus, alert rules, dashboard Grafana và hướng dẫn triển khai được lưu tại [aws-infrastructure-monitoring](https://github.com/khanchannn/aws-infrastructure-monitoring).
+Hôm nay mình muốn chia sẻ mô hình monitoring cho hạ tầng chạy trên AWS, gồm các máy EC2, cụm EKS và những dịch vụ xoay quanh chúng. Mục tiêu nghe thì đơn giản nhưng để làm cho hữu ích lại không dễ: khi thấy hệ thống chậm hoặc có gì đó không ổn, mình muốn nhìn được đủ thông tin ở một nơi để biết nên bắt đầu kiểm tra từ đâu.
 
-Repo là lab/showcase để xem cấu trúc và thử từng thành phần. Terraform/EKS có thể phát sinh chi phí AWS; hãy đọc hướng dẫn, kiểm tra plan, cấu hình quyền IAM tối thiểu và xóa tài nguyên lab sau khi thực hành. Các giá trị ví dụ không thay thế việc review bảo mật cho production.
+Hai vấn đề khiến mình học được nhiều nhất lại không phải chuyện làm dashboard mới. Prometheus cứ thu thập dữ liệu cho tới khi ổ đĩa EC2 bắt đầu thiếu chỗ, còn Slack thì dần ồn ào vì alert nào cũng được gửi như thể đang khẩn cấp. Mình sẽ nói qua kiến trúc trước, rồi chia sẻ cách xử lý và bài học rút ra từ hai chuyện đó.
 
-## Kết luận
+### 1. Kiến trúc tổng quan
 
-Một hệ thống monitoring hữu ích cần đi từ metric có ý nghĩa tới cảnh báo có người chịu trách nhiệm và hành động cụ thể. Bắt đầu với những tín hiệu ảnh hưởng trực tiếp đến độ ổn định dịch vụ, theo dõi dung lượng lưu trữ của chính monitoring stack, rồi mở rộng dần theo nhu cầu vận hành.
+Sơ đồ phía trên mô tả hệ thống trong một VPC, chia thành public subnet và private subnet. Phía public có Application Load Balancer (ALB) để admin truy cập Grafana qua HTTPS. Grafana, Prometheus và Alertmanager nằm trong private subnet; các endpoint của exporter không nên mở trực tiếp ra Internet. NAT Gateway cung cấp đường đi ra ngoài khi tài nguyên private cần dùng.
+
+Luồng metric dễ hình dung hơn sơ đồ mạng: **Node Exporter và exporter của ứng dụng thu thập metric → Prometheus scrape và lưu trữ → Grafana hiển thị thành dashboard**. Khi một rule của Prometheus duy trì đủ lâu, Prometheus gửi alert tới **Alertmanager** để gom nhóm rồi chuyển tới Slack hoặc email.
+
+Trong sơ đồ có các EC2 chạy monitoring stack và dịch vụ như Kafka, Elasticsearch, cùng application pod và monitoring pod trên EKS. Cách kết nối Prometheus trong cluster với Prometheus trung tâm tùy môi trường; dù chọn cách nào thì luồng này cũng nên nằm trong mạng private và có phạm vi rõ ràng.
+
+### 2. Những metric mình muốn nhìn thấy
+
+Mình không muốn dashboard có thật nhiều con số chỉ vì exporter thu thập được chúng. Mình ưu tiên những tín hiệu giúp trả lời hai câu: “điều gì vừa thay đổi?” và “tiếp theo nên kiểm tra ở đâu?”
+
+| Khu vực | Metric mình theo dõi | Có thể giúp nhận ra |
+| --- | --- | --- |
+| EC2 / host | CPU, RAM, disk I/O, dung lượng filesystem, network traffic | Máy thiếu tài nguyên hoặc ổ đĩa đang đầy dần |
+| Kafka | Consumer lag, under-replicated partitions, bytes in/out | Consumer xử lý chậm hoặc broker đang chịu áp lực |
+| Elasticsearch | Cluster health, JVM heap, indexing/search latency | Cluster không khỏe hoặc truy vấn bắt đầu chậm |
+| EKS | Trạng thái pod, số lần restart, CPU/RAM requests và limits | Workload bị pending, restart hoặc chạm giới hạn tài nguyên |
+| Ứng dụng | Request rate, latency, tỷ lệ HTTP 4xx/5xx | Người dùng gặp phản hồi chậm hoặc lỗi tăng |
+
+Node Exporter lo phần metric ở host. Trạng thái Kubernetes cần metric hiểu được các object của cluster như kube-state-metrics; Kafka và Elasticsearch cần exporter tương ứng. Ứng dụng phải xuất metric ở định dạng Prometheus scrape được. Mình giữ các label như `environment`, `cluster`, `namespace` và `service` nhất quán để có thể đối chiếu các tín hiệu liên quan mà không cần tạo dashboard riêng cho từng máy.
+
+### 3. Bài học đầu tiên: Prometheus cũng cần giới hạn dung lượng
+
+Ban đầu, lưu được càng nhiều metric nghe có vẻ an toàn. Sau đó dữ liệu Prometheus tăng lên và ổ đĩa EC2 bắt đầu đầy. Chuyện đó nhắc mình rằng chính hệ thống monitoring cũng cần được monitor.
+
+Mình đặt mục tiêu **retention 15 ngày**, tăng `scrape_interval` ở những metric không cần độ chi tiết từng giây, và lọc bỏ các metric không giúp cho dashboard hay alert nào. Nhờ vậy dữ liệu tăng bớt lãng phí mà vẫn giữ những tín hiệu mình cần khi tìm nguyên nhân. Retention và tần suất scrape vẫn phải phù hợp với workload; 15 ngày chỉ là mốc ban đầu của cấu hình này, không phải đáp án cho mọi hệ thống.
+
+Mình cũng theo dõi dung lượng Prometheus, số lượng series và thời gian query. Nếu cần lưu lịch sử dài hơn hoặc tăng khả năng sẵn sàng, một Prometheus chạy đơn lẻ với ổ đĩa local chưa đủ; phần storage, backup và khôi phục cần có kế hoạch riêng.
+
+### 4. Bài học thứ hai: ít alert hơn nhưng có ích hơn
+
+Bài học còn lại đến từ Slack. Khi quá nhiều alert ít giá trị đổ vào cùng lúc, những cảnh báo cần xử lý thật sự dễ bị chìm. Mình chia alert thành **Critical** và **Warning**, gom các thông báo liên quan và dùng `for: 5m` cho những điều kiện cần duy trì một khoảng thời gian trước khi báo cho người trực.
+
+Ví dụ nhỏ dưới đây cảnh báo filesystem sắp hết chỗ. Ngưỡng chỉ để minh họa; cần điều chỉnh theo loại volume, workload và khoảng thời gian đội vận hành cần để xử lý.
+
+```yaml
+groups:
+  - name: infrastructure.rules
+    rules:
+      - alert: HostFilesystemSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{fstype!="tmpfs",mountpoint!="/run"}
+            / node_filesystem_size_bytes{fstype!="tmpfs",mountpoint!="/run"}) < 0.10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Filesystem space is low on {{ $labels.instance }}"
+          description: "Less than 10% free on {{ $labels.mountpoint }}. Check disk growth and retention."
+```
+
+`for: 5m` giúp tránh phản ứng với một spike ngắn, nhưng không nên bê nguyên vào tất cả rule. Một alert tốt cần nói rõ thành phần nào bị ảnh hưởng và gợi ý bước kiểm tra tiếp theo. Slack webhook và thông tin đăng nhập email phải nằm trong secret store, không commit vào repository.
+
+### 5. Vài điều mình luôn để ý
+
+- Giữ Grafana, Prometheus, Alertmanager và exporter trong các luồng mạng private. Nếu truy cập Grafana qua ALB, cần HTTPS, xác thực và giới hạn nguồn truy cập.
+- Chỉ cho Prometheus truy cập các port exporter cần thiết. Mở exporter ra Internet không phải cách xử lý nhanh đáng đánh đổi.
+- Chọn threshold, scrape interval và retention dựa trên dữ liệu thực tế và nhu cầu vận hành; thêm series hoặc thêm đường mạng AWS đều có chi phí.
+- Xem dashboard và alert rule là cấu hình cần review, backup và khôi phục có chủ đích.
+- Dùng AWS Budget và xem trước chi phí EC2, EKS, NAT Gateway, EBS và data transfer nếu chạy lab lâu ngày.
+
+Repo đi kèm bài viết chứa bộ cấu hình tham khảo đã lược bỏ thông tin riêng của môi trường: demo Docker Compose chạy local, Prometheus targets và rules, cấu hình mẫu Alertmanager, Grafana provisioning và Helm values để kết nối với EKS có sẵn. Repo không tự tạo tài nguyên AWS; Slack URL trong cấu hình mẫu cũng không dùng được cho gửi cảnh báo thật.
+
+### Kết luận
+
+Bài học lớn nhất của mình là monitoring không có nghĩa là thu thập được càng nhiều metric càng tốt. Điều quan trọng là có đủ bối cảnh để nhận ra vấn đề, hiểu nó có thể đến từ đâu và gửi được cảnh báo mà người nhận có thể hành động. Chuyện ổ đĩa và Slack ồn ào lúc gặp khá phiền, nhưng xử lý xong thì hệ thống thực sự hữu ích hơn.
+
+Mã nguồn của project ở đây: [aws-infrastructure-monitoring](https://github.com/khanchannn/aws-infrastructure-monitoring).
