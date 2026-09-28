@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#202326">
+    <meta name="description" content="Khang's notes and projects on cybersecurity, security operations, and infrastructure.">
+    <title>[Project Showcase] AI-SOAR: From an Idea to a Safer SOC Workflow | Từ ý tưởng đến một quy trình SOC an toàn hơn</title>
+    <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css?v=20260928-all-pages">
+</head>
+<body id="top">
+    <div class="container">
+        <header class="site-header">
+            <a href="/dulkanggg/" class="site-logo">
+                <img src="/dulkanggg/images/logo.png" alt="" width="40" height="40">
+                <span>Dulkanggg's Corner</span>
+            </a>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/projects">Projects</a>
+                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+        </header>
+
+
+<main>
+    <article class="post-content">
+        <h1>[Project Showcase] AI-SOAR: From an Idea to a Safer SOC Workflow | Từ ý tưởng đến một quy trình SOC an toàn hơn</h1>
+        <div class="post-meta"><time datetime="2026-09-28">2026-09-28</time> · <a href="/dulkanggg/tags/cybersecurity">cybersecurity</a> · <a href="/dulkanggg/tags/soc">soc</a> · <a href="/dulkanggg/tags/soar">soar</a> · <a href="/dulkanggg/tags/ai">ai</a> · <a href="/dulkanggg/tags/wazuh">wazuh</a> · <a href="/dulkanggg/tags/n8n">n8n</a> · <a href="/dulkanggg/tags/ollama">ollama</a> · <a href="/dulkanggg/tags/project-showcase">project-showcase</a> · <a href="/dulkanggg/tags/bilingual">bilingual</a></div>
+        <div class="post-body"><blockquote>
+<p><em>🇻🇳 Bản tiếng Việt ở phía dưới.</em></p>
+</blockquote>
+<hr>
+<h3>[Project Showcase] AI-SOAR: From an Idea to a Safer SOC Workflow</h3>
+<p>This started with a practical question: could we make repetitive Level 1 alert triage less manual without sending an organization’s full security logs to a public AI service? I worked on this as a university capstone with a team. My part centered on coordinating the architecture and integration, so a lot of my time went into deciding where each component should stop, and checking that the pieces could work together.</p>
+<p>We kept the first version inside a lab. Wazuh remained the source of security alerts and evidence; n8n handled the workflow; and Qwen3:8B ran locally through Ollama to summarize bounded log evidence and draft an incident report. VirusTotal and AbuseIPDB added reputation context for a source IP, while Discord and Telegram were notification channels. That still sends an indicator to external services, so “local AI” does not mean that every piece of data stays local.</p>
+<h3>Turning the idea into a flow</h3>
+<p>Before wiring nodes together, we mapped the boundaries: the monitored Linux endpoint, Wazuh, the orchestration and local model host, and external reputation and notification services. Then we built the flow in smaller steps: receive a Wazuh alert, validate and normalize it, suppress duplicates, enrich the source IP, collect a limited amount of endpoint context over SSH, ask the local model to extract evidence, assemble a report, and notify an analyst.</p>
+<p>Splitting the model work into two stages made the responsibilities easier to review. The first stage summarizes relevant log evidence. The second combines that summary with the original alert and threat-intelligence results to draft a report. The model can help explain evidence, but its prose is advisory; it does not get authority to run a firewall command.</p>
+<h3>The problems that changed the design</h3>
+<p>The first challenge was input quality. Alerts can arrive with different shapes, and repeated events can waste API and model calls. We added normalization, source-IP validation, and a configurable deduplication window before enrichment. This also made it easier to keep the original Wazuh alert as the authoritative record instead of letting a model rewrite the facts.</p>
+<p>The second challenge was privacy and uncertainty. Local inference reduced the amount of log content sent to an AI provider, but reputation lookups still send the selected IP to VirusTotal and AbuseIPDB. Their responses are supporting evidence, not a verdict. We kept those boundaries explicit and treated missing or conflicting enrichment as a reason to investigate, not as permission to act.</p>
+<p>The most important finding came during a review of the response path. In the workflow export, both outputs of the “Should Block IP?” decision reached the SSH node that ran a UFW deny command. The configured severity and reputation thresholds also were not enforced at that final gate. A controlled UFW command had worked in the lab, but that only showed the command could apply a rule; it did not prove that the automated decision was safe.</p>
+<p>So I removed the containment command from the public workflow and left automated blocking disabled. That is a less impressive demo, but it is the honest state of the project: end-to-end automated containment still needs a fail-closed gate, negative and failure-path tests, rollback evidence, and a careful review of SSH permissions. Notifications are not an approval mechanism, and the AI report is not authorization.</p>
+<h3>What I learned by building it</h3>
+<p>I learned to treat “it ran once” as the beginning of validation, not the end. A response system has to prove what it does when input is malformed, an API is unavailable, a branch is false, a command fails, or a rollback is needed. Separating detection, enrichment, analysis, notification, and action also made the design easier to reason about—and made it clear that action deserves a stricter release bar than analysis.</p>
+<p>The public repository contains a redacted n8n reference export and implementation notes. It is inactive by default, contains no credentials or original thesis PDF, and has no UFW execution node. It is a lab reference, not a one-click production deployment. <a href="https://github.com/khanchannn/ai-soc-analyst-l1">View the AI-SOC-Analyst-L1 repository</a>.</p>
+<p>This was team work, and I am grateful for the people who owned the Wazuh, local-model, threat-intelligence, notification, and testing pieces. My biggest takeaway was about integration: the system becomes safer when every component has a clear boundary and every claim is limited to evidence we actually have.</p>
+<hr>
+<h3>[Project Showcase] AI-SOAR: Từ ý tưởng đến một quy trình SOC an toàn hơn</h3>
+<p>Dự án bắt đầu từ một câu hỏi khá thực tế: liệu mình có thể giảm bớt những thao tác lặp lại khi phân tích alert Level 1 mà không phải gửi toàn bộ log bảo mật của tổ chức lên một dịch vụ AI công cộng không? Đây là đồ án capstone mình thực hiện cùng một nhóm ở trường. Phần việc của mình tập trung vào điều phối kiến trúc và tích hợp, nên mình dành nhiều thời gian xác định mỗi thành phần nên dừng ở đâu và kiểm tra xem chúng có phối hợp được với nhau không.</p>
+<p>Nhóm giới hạn phiên bản đầu trong môi trường lab. Wazuh tiếp tục là nguồn tạo alert và bằng chứng bảo mật; n8n điều phối workflow; Qwen3:8B chạy local qua Ollama để tóm tắt log có giới hạn và soạn báo cáo sự cố. VirusTotal và AbuseIPDB bổ sung thông tin uy tín cho IP nguồn, còn Discord và Telegram dùng để gửi thông báo. Dù model chạy local, IP được tra cứu vẫn gửi tới dịch vụ bên ngoài; vì vậy “AI local” không có nghĩa là mọi dữ liệu đều nằm trong máy.</p>
+<h3>Biến ý tưởng thành luồng xử lý</h3>
+<p>Trước khi nối các node, nhóm xác định các ranh giới: endpoint Linux được giám sát, Wazuh, máy chạy n8n và model local, cùng các dịch vụ reputation và notification bên ngoài. Sau đó nhóm triển khai từng bước nhỏ: nhận alert từ Wazuh, kiểm tra và chuẩn hóa dữ liệu, loại alert trùng, enrichment IP nguồn, lấy một lượng log giới hạn qua SSH, nhờ model local trích xuất bằng chứng, ghép thành báo cáo rồi gửi cho analyst.</p>
+<p>Chia phần AI thành hai giai đoạn giúp trách nhiệm của từng bước dễ xem xét hơn. Giai đoạn đầu tóm tắt bằng chứng trong log. Giai đoạn sau kết hợp phần tóm tắt với alert gốc và kết quả threat intelligence để soạn báo cáo. Model có thể hỗ trợ giải thích bằng chứng, nhưng nội dung do nó tạo ra chỉ mang tính tham khảo; model không có quyền chạy lệnh firewall.</p>
+<h3>Những vấn đề khiến thiết kế phải thay đổi</h3>
+<p>Khó khăn đầu tiên là chất lượng dữ liệu đầu vào. Alert có thể có cấu trúc khác nhau, còn sự kiện lặp lại gây tốn lượt gọi API và model. Nhóm bổ sung bước chuẩn hóa, kiểm tra IP nguồn và khoảng thời gian dedup trước khi enrichment. Nhờ vậy, alert gốc từ Wazuh vẫn là hồ sơ chính thức, thay vì để model viết lại dữ kiện.</p>
+<p>Khó khăn tiếp theo là quyền riêng tư và độ không chắc chắn. Chạy inference local giúp giảm lượng log gửi tới nhà cung cấp AI, nhưng việc tra cứu reputation vẫn gửi IP được chọn tới VirusTotal và AbuseIPDB. Kết quả của các dịch vụ này chỉ là bằng chứng hỗ trợ, không phải kết luận cuối cùng. Nhóm giữ rõ ranh giới đó và xem dữ liệu thiếu hoặc mâu thuẫn là lý do để kiểm tra thêm, chứ không phải lý do để tự động hành động.</p>
+<p>Phát hiện quan trọng nhất đến khi rà soát nhánh response. Trong bản workflow export, cả hai đầu ra của điều kiện “Should Block IP?” đều nối tới node SSH chạy lệnh UFW deny. Các ngưỡng severity và reputation đã cấu hình cũng chưa được kiểm tra ở cổng quyết định cuối. Một lệnh UFW chạy thành công trong lab chỉ chứng minh lệnh có thể thêm rule; nó chưa chứng minh quyết định tự động là an toàn.</p>
+<p>Vì vậy, mình đã bỏ lệnh containment khỏi workflow public và để tính năng tự động chặn ở trạng thái tắt. Demo có thể kém ấn tượng hơn, nhưng đó mới là trạng thái trung thực của dự án: containment tự động đầu-cuối vẫn cần cổng fail-closed, kiểm thử nhánh âm và khi lỗi, bằng chứng rollback, cùng việc rà soát kỹ quyền SSH. Notification không phải cơ chế phê duyệt, và báo cáo AI không phải quyền cho phép hành động.</p>
+<h3>Điều mình rút ra khi triển khai</h3>
+<p>Mình học được rằng “chạy được một lần” chỉ là điểm bắt đầu của validation. Một hệ thống response phải chứng minh được điều gì xảy ra khi input sai định dạng, API không khả dụng, điều kiện trả về false, câu lệnh bị lỗi hoặc cần rollback. Việc tách detection, enrichment, analysis, notification và action cũng giúp thiết kế dễ suy nghĩ hơn; đồng thời cho thấy action cần tiêu chuẩn đưa vào sử dụng nghiêm ngặt hơn analysis.</p>
+<p>Repo public có bản workflow n8n tham khảo đã lược bỏ thông tin riêng và tài liệu triển khai. Workflow mặc định inactive, không chứa credential hay file luận văn gốc, và không có node thực thi UFW. Đây là tài liệu tham khảo cho lab, không phải cấu hình triển khai production chỉ cần bấm chạy. <a href="https://github.com/khanchannn/ai-soc-analyst-l1">Xem repository AI-SOC-Analyst-L1</a>.</p>
+<p>Đây là dự án làm theo nhóm; mình biết ơn các bạn phụ trách Wazuh, model local, threat intelligence, notification và kiểm thử. Điều mình nhớ nhất là bài học về tích hợp: hệ thống an toàn hơn khi mỗi thành phần có ranh giới rõ ràng và mọi kết luận đều giới hạn đúng theo bằng chứng mà nhóm thực sự có.</p>
+</div>
+        <a class="back-link" href="/dulkanggg/">← Back to posts</a>
+    </article>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.post-content pre').forEach(pre => {
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.type = 'button';
+            button.textContent = 'Copy';
+            button.addEventListener('click', () => {
+                const code = pre.querySelector('code')?.innerText || pre.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    button.textContent = 'Copied!';
+                    setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                }).catch(() => { button.textContent = 'Error'; });
+            });
+            pre.append(button);
+        });
+    });
+</script>
+
+        <footer class="site-footer">
+            <span>© 2026 Khang</span>
+            <nav aria-label="Footer navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/projects">Projects</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+            <a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </footer>
+    </div>
+</body>
+</html>
