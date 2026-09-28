@@ -3,77 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b1120">
-    <meta name="description" content="Khang's cybersecurity portfolio and notebook: security operations, application security, and infrastructure labs.">
+    <meta name="theme-color" content="#202326">
+    <meta name="description" content="Khang's notes and projects on cybersecurity, security operations, and infrastructure.">
     <title>[Project Showcase] AWS Infrastructure Monitoring | Xây dựng hệ thống Monitoring trên AWS</title>
     <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/dulkanggg/css/style.css?v=cf68e88">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css?v=20260928-simple-layout">
 </head>
-<body>
-    <div class="site-shell">
+<body id="top">
+    <div class="container">
         <header class="site-header">
-            <a href="/dulkanggg/" class="brand" aria-label="Dulkanggg's Corner home">
-                <span class="brand-mark" aria-hidden="true">K<span>.</span></span>
-                <span class="brand-copy"><strong>Dulkanggg's Corner</strong><small>SECURITY · SYSTEMS · NOTES</small></span>
+            <a href="/dulkanggg/" class="site-logo">
+                <img src="/dulkanggg/images/logo.png" alt="" width="40" height="40">
+                <span>Dulkanggg's Corner</span>
             </a>
             <nav class="site-nav" aria-label="Main navigation">
                 <a href="/dulkanggg/">Home</a>
-                <a href="/dulkanggg/search.html">Writing</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/about#projects">Projects</a>
+                <a href="/dulkanggg/search.html">Search</a>
                 <a href="/dulkanggg/about">About</a>
-                <a class="nav-github" href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
             </nav>
         </header>
-        <div class="site-content">
 
 
-    <main>
+<main>
     <article class="post-content">
-        <h1>
-            [Project Showcase] AWS Infrastructure Monitoring | Xây dựng hệ thống Monitoring trên AWS
-        </h1>
-        <div class="post-meta">
-            <span>
-                2026-09-28
-            </span>
-            
-                | Tags:
-                
-                    <a href="/dulkanggg/tags/aws">
-                        aws
-                    </a>
-                    
-                    <a href="/dulkanggg/tags/monitoring">
-                        monitoring
-                    </a>
-                    
-                    <a href="/dulkanggg/tags/devops">
-                        devops
-                    </a>
-                    
-                    <a href="/dulkanggg/tags/prometheus">
-                        prometheus
-                    </a>
-                    
-                    <a href="/dulkanggg/tags/kubernetes">
-                        kubernetes
-                    </a>
-                    
-                    <a href="/dulkanggg/tags/project-showcase">
-                        project-showcase
-                    </a>
-                    
-                    <a href="/dulkanggg/tags/bilingual">
-                        bilingual
-                    </a>
-                    
-                        
-        </div>
-
-        <div>
-            <blockquote>
+        <h1>[Project Showcase] AWS Infrastructure Monitoring | Xây dựng hệ thống Monitoring trên AWS</h1>
+        <div class="post-meta"><time datetime="2026-09-28">2026-09-28</time> · <a href="/dulkanggg/tags/aws">aws</a> · <a href="/dulkanggg/tags/monitoring">monitoring</a> · <a href="/dulkanggg/tags/devops">devops</a> · <a href="/dulkanggg/tags/prometheus">prometheus</a> · <a href="/dulkanggg/tags/kubernetes">kubernetes</a> · <a href="/dulkanggg/tags/project-showcase">project-showcase</a> · <a href="/dulkanggg/tags/bilingual">bilingual</a></div>
+        <div class="post-body"><blockquote>
 <p><em>🇻🇳 Bản tiếng Việt nằm ở phía dưới bài viết (Vietnamese version is available below).</em> </p>
 </blockquote>
 <hr>
@@ -237,46 +197,40 @@
 <h3>Kết luận</h3>
 <p>Bài học lớn nhất của mình là monitoring không có nghĩa là thu thập được càng nhiều metric càng tốt. Điều quan trọng là có đủ bối cảnh để nhận ra vấn đề, hiểu nó có thể đến từ đâu và gửi được cảnh báo mà người nhận có thể hành động. Chuyện ổ đĩa và Slack ồn ào lúc gặp khá phiền, nhưng xử lý xong thì hệ thống thực sự hữu ích hơn.</p>
 <p>Mã nguồn của project ở đây: <a href="https://github.com/khanchannn/aws-infrastructure-monitoring">aws-infrastructure-monitoring</a>.</p>
-
-        </div>
+</div>
+        <a class="back-link" href="/dulkanggg/">← Back to posts</a>
     </article>
+</main>
 
-    <a class="back-link" href="/dulkanggg/">← Back to home</a>
-    </main>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.post-content pre').forEach(pre => {
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.type = 'button';
+            button.textContent = 'Copy';
+            button.addEventListener('click', () => {
+                const code = pre.querySelector('code')?.innerText || pre.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    button.textContent = 'Copied!';
+                    setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                }).catch(() => { button.textContent = 'Error'; });
+            });
+            pre.append(button);
+        });
+    });
+</script>
 
-            </div>
         <footer class="site-footer">
-            <div><a class="footer-brand" href="/dulkanggg/">Khang <span>·</span> Dulkanggg's Corner</a><p>Notes on building, defending, and understanding systems.</p></div>
-            <div class="footer-links"><a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://www.linkedin.com/in/khangtran0105" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="mailto:thuakhangtran12@gmail.com">Email ↗</a></div>
-            <div class="footer-copy">© 2026 Khang</div>
+            <span>© 2026 Khang</span>
+            <nav aria-label="Footer navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/about#projects">Projects</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+            <a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         </footer>
     </div>
 </body>
 </html>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const codeBlocks = document.querySelectorAll('.post-content pre');
-
-                codeBlocks.forEach(pre => {
-                    const button = document.createElement('button');
-                    button.className = 'copy-btn';
-                    button.textContent = 'Copy';
-
-                    button.addEventListener('click', () => {
-                        const code = pre.querySelector('code').innerText;
-                        navigator.clipboard.writeText(code).then(() => {
-                            button.textContent = 'Copied!';
-                            setTimeout(() => {
-                                button.textContent = 'Copy';
-                            }, 2000);
-                        }).catch(err => {
-                            console.error('Failed to copy:', err);
-                            button.textContent = 'Error';
-                        });
-                    });
-
-                    pre.appendChild(button);
-                });
-            });
-        </script>

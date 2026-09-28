@@ -3,88 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b1120">
-    <meta name="description" content="Khang's cybersecurity portfolio and notebook: security operations, application security, and infrastructure labs.">
+    <meta name="theme-color" content="#202326">
+    <meta name="description" content="Khang's notes and projects on cybersecurity, security operations, and infrastructure.">
     <title>About - Dulkanggg&#39;s Corner</title>
     <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/dulkanggg/css/style.css?v=cf68e88">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dulkanggg/css/style.css?v=20260928-simple-layout">
 </head>
-<body>
-    <div class="site-shell">
+<body id="top">
+    <div class="container">
         <header class="site-header">
-            <a href="/dulkanggg/" class="brand" aria-label="Dulkanggg's Corner home">
-                <span class="brand-mark" aria-hidden="true">K<span>.</span></span>
-                <span class="brand-copy"><strong>Dulkanggg's Corner</strong><small>SECURITY · SYSTEMS · NOTES</small></span>
+            <a href="/dulkanggg/" class="site-logo">
+                <img src="/dulkanggg/images/logo.png" alt="" width="40" height="40">
+                <span>Dulkanggg's Corner</span>
             </a>
             <nav class="site-nav" aria-label="Main navigation">
                 <a href="/dulkanggg/">Home</a>
-                <a href="/dulkanggg/search.html">Writing</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/about#projects">Projects</a>
+                <a href="/dulkanggg/search.html">Search</a>
                 <a href="/dulkanggg/about">About</a>
-                <a class="nav-github" href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
             </nav>
         </header>
-        <div class="site-content">
 
 
 <main class="about-page">
-    <section class="about-hero panel" aria-labelledby="about-title">
-        <div class="eyebrow"><span class="status-dot"></span> JUNIOR SECURITY ENGINEER · SOC ANALYST L1</div>
-        <h1 id="about-title">Hi, I'm Khang.<br><span class="text-accent">I make systems easier to trust.</span></h1>
-        <p class="lead">I completed the Information Assurance program at FPT University in 2026, and I'm building my career in security monitoring, incident analysis, and practical application security. I like understanding how a system works first, then making it safer without losing sight of the people who have to operate it.</p>
-        <p class="about-story">I started close to the infrastructure: helping people get their systems working, troubleshooting networks, and documenting what I found. That experience still shapes how I approach security. Today, I build hands-on labs around Wazuh, web security, Linux, and AWS, and I keep the notes here so the lessons are useful beyond the lab.</p>
-        <div class="button-row">
-            <a class="button button-primary" href="mailto:thuakhangtran12@gmail.com">Get in touch <span aria-hidden="true">↗</span></a>
-            <a class="button button-secondary" href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">View GitHub</a>
-            <a class="text-link" href="https://www.linkedin.com/in/khangtran0105" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-        </div>
-        <div class="about-meta"><span>Based in Can Tho, Vietnam</span><span>Open to junior security and SOC opportunities</span><span>Available for relocation and on-site work</span></div>
+    <section class="about-intro">
+        <h1>Hi, I'm Khang.</h1>
+        <p>I completed the Information Assurance program at FPT University in 2026 (official diploma pending). I'm looking for a junior opportunity in security engineering or SOC operations. My interests are security monitoring, incident analysis, and web application security, with Linux, networking, and AWS labs supporting that work.</p>
+        <p class="about-links"><a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://www.linkedin.com/in/khangtran0105" target="_blank" rel="noopener noreferrer">LinkedIn</a><a href="mailto:thuakhangtran12@gmail.com">Email</a></p>
     </section>
 
-    <section class="content-section" aria-labelledby="focus-title">
-        <div class="section-heading">
-            <div><div class="eyebrow">WHAT I WORK ON</div><h2 id="focus-title">Security first, operations close behind.</h2></div>
-            <p>My strongest interest is defensive security. DevOps and infrastructure are the context that helps me secure and support real systems.</p>
-        </div>
-        <div class="focus-grid">
-            <article class="focus-card"><span class="card-index">01 / DEFEND</span><h3>Security operations</h3><p>Wazuh SIEM, alert and log analysis, incident triage, IOC enrichment, and documented response workflows.</p><div class="tag-row"><span>Wazuh</span><span>n8n</span><span>VirusTotal</span><span>AbuseIPDB</span></div></article>
-            <article class="focus-card"><span class="card-index">02 / TEST</span><h3>Application security</h3><p>Web and API testing with Burp Suite and OWASP Top 10 concepts, plus practical hardening and security-minded code review.</p><div class="tag-row"><span>Burp Suite</span><span>OWASP</span><span>ModSecurity</span><span>HTTPS</span></div></article>
-            <article class="focus-card"><span class="card-index">03 / OPERATE</span><h3>Infrastructure & DevOps</h3><p>Linux and Windows troubleshooting, networking fundamentals, Docker, and introductory AWS CI/CD and monitoring labs.</p><div class="tag-row"><span>Linux</span><span>Docker</span><span>AWS</span><span>CI/CD</span></div></article>
-        </div>
+    <section class="about-section">
+        <h2>About Me</h2>
+        <ul>
+            <li><strong>Education:</strong> Information Assurance, FPT University Can Tho; program completed in 2026.</li>
+            <li><strong>Security focus:</strong> Wazuh monitoring, alert and log analysis, incident triage, web/API testing, and system hardening.</li>
+            <li><strong>Operations:</strong> IT helpdesk and system integration experience across Windows, Linux, TCP/IP, DNS, DHCP, and LAN troubleshooting.</li>
+            <li><strong>DevOps:</strong> Docker and hands-on AWS CI/CD and infrastructure monitoring labs.</li>
+            <li><strong>Languages:</strong> Vietnamese (native), English (CEFR B2 equivalent), and French (elementary).</li>
+        </ul>
     </section>
 
-    <section class="content-section" aria-labelledby="projects-title">
-        <div class="section-heading"><div><div class="eyebrow">SELECTED HANDS-ON WORK</div><h2 id="projects-title">Learning by building and troubleshooting.</h2></div></div>
-        <div class="project-list">
-            <article class="project-card"><div class="project-number">01</div><div><h3>AI-SOAR security monitoring lab</h3><p>A multi-VM Wazuh lab with n8n workflows for alert intake, VirusTotal and AbuseIPDB enrichment, structured incident reports, and rule-based UFW containment. I documented the tests, operating steps, and limitations, including a traditional analysis path alongside automation.</p><div class="tag-row"><span>Wazuh</span><span>n8n</span><span>UFW</span><span>Incident response</span></div></div></article>
-            <article class="project-card"><div class="project-number">02</div><div><h3>Web application security & hardening</h3><p>Practiced Web/API assessment with Burp Suite and OWASP concepts, then hardened a Node.js application with validation, CSRF controls, HTTPS, Nginx ModSecurity CRS, UFW rules, and log review.</p><div class="tag-row"><span>Burp Suite</span><span>OWASP Top 10</span><span>Node.js</span><span>Nginx</span></div></div></article>
-            <article class="project-card"><div class="project-number">03</div><div><h3>AWS infrastructure monitoring</h3><p>A reference monitoring stack for EC2 and EKS using Prometheus, Grafana, Alertmanager, and exporters, with practical notes on disk retention and reducing noisy alerts.</p><div class="tag-row"><span>AWS</span><span>Prometheus</span><span>Grafana</span><span>EKS</span></div><a class="text-link" href="https://github.com/khanchannn/aws-infrastructure-monitoring" target="_blank" rel="noopener noreferrer">Explore the repository ↗</a></div></article>
-            <article class="project-card"><div class="project-number">04</div><div><h3>AWS multi-branch CI/CD lab</h3><p>Built separate test and production flows with CodePipeline and CodeBuild, stored artifacts in S3, and added an SNS-backed manual approval before production deployment.</p><div class="tag-row"><span>CodePipeline</span><span>CodeBuild</span><span>S3</span><span>CloudFormation / SAM</span></div></div></article>
-        </div>
+    <section class="about-section">
+        <h2>Technical Skills</h2>
+        <ul>
+            <li><strong>Security operations:</strong> Wazuh SIEM, alert/log analysis, incident response fundamentals, VirusTotal, AbuseIPDB, UFW.</li>
+            <li><strong>Application security:</strong> Burp Suite, OWASP Top 10 concepts, Web/API testing, validation, CSRF controls, HTTPS, Nginx ModSecurity CRS.</li>
+            <li><strong>Infrastructure:</strong> Linux, Windows, TCP/IP, DNS, DHCP, Wireshark, Nmap, Docker, Nginx, PostgreSQL.</li>
+            <li><strong>Automation & cloud:</strong> Python, Bash, JavaScript fundamentals, n8n, AWS CodePipeline, CodeBuild, S3, SNS, CloudFormation/SAM.</li>
+        </ul>
     </section>
 
-    <section class="content-section two-column-section">
-        <div><div class="eyebrow">EXPERIENCE</div><h2>Work that shaped my approach.</h2></div>
-        <div class="timeline">
-            <article class="timeline-item"><div class="timeline-date">JUN 2025 — PRESENT</div><h3>Teaching Assistant · MindX Technology School</h3><p>Explain programming concepts, troubleshoot Python and JavaScript code, and adapt technical guidance to different learners.</p></article>
-            <article class="timeline-item"><div class="timeline-date">MAY 2025 — AUG 2025</div><h3>System Integration Intern · VNPT Can Tho</h3><p>Surveyed enterprise IT environments, clarified requirements, prepared deployment documents, and coordinated testing and troubleshooting with engineering teams.</p></article>
-            <article class="timeline-item"><div class="timeline-date">FEB 2024 — MAR 2025</div><h3>IT Helpdesk Staff · FPT University</h3><p>Resolved and documented staff incidents, prepared Windows workstations, and diagnosed TCP/IP, DHCP, DNS, LAN, and connectivity issues.</p></article>
-        </div>
+    <section class="about-section" id="projects">
+        <h2>Selected Projects</h2>
+        <ul>
+            <li><strong>AI-SOAR security monitoring lab:</strong> A multi-VM Wazuh lab using n8n for alert intake, IOC enrichment, incident reports, and rule-based UFW containment.</li>
+            <li><strong>Web application security and hardening:</strong> Web/API assessment with Burp Suite and OWASP concepts, followed by practical Node.js and Nginx hardening.</li>
+            <li><strong>AWS infrastructure monitoring:</strong> A Prometheus, Grafana, and Alertmanager reference setup for EC2 and EKS. <a href="https://github.com/khanchannn/aws-infrastructure-monitoring" target="_blank" rel="noopener noreferrer">Project repository</a>.</li>
+            <li><strong>AWS multi-branch CI/CD lab:</strong> Test and production pipelines with a manual approval gate before production deployment.</li>
+        </ul>
     </section>
 
-    <section class="education-panel panel">
-        <div><div class="eyebrow">FOUNDATION</div><h2>Information Assurance</h2><p>FPT University · Can Tho<br>Program completed in 2026 · Official diploma pending</p></div>
-        <div class="education-details"><p><strong>Certifications</strong><br>Cyber Security 101 (TryHackMe) · Certified Phishing Prevention Specialist (CPPS)</p><p><strong>Languages</strong><br>Vietnamese (native) · English (CEFR B2 equivalent) · French (elementary)</p></div>
+    <section class="about-section">
+        <h2>Experience</h2>
+        <ul>
+            <li><strong>Teaching Assistant, MindX Technology School</strong> (Jun 2025–present): explain programming concepts and troubleshoot Python and JavaScript exercises.</li>
+            <li><strong>System Integration Intern, VNPT Can Tho</strong> (May–Aug 2025): survey enterprise IT environments, document requirements, and assist with testing and rollout.</li>
+            <li><strong>IT Helpdesk Staff, FPT University</strong> (Feb 2024–Mar 2025): resolve and document support issues across workstations and campus networks.</li>
+        </ul>
+    </section>
+
+    <section class="about-section">
+        <h2>Certifications</h2>
+        <p>Cyber Security 101 (TryHackMe) · Certified Phishing Prevention Specialist (CPPS)</p>
     </section>
 </main>
 
-        </div>
         <footer class="site-footer">
-            <div><a class="footer-brand" href="/dulkanggg/">Khang <span>·</span> Dulkanggg's Corner</a><p>Notes on building, defending, and understanding systems.</p></div>
-            <div class="footer-links"><a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://www.linkedin.com/in/khangtran0105" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="mailto:thuakhangtran12@gmail.com">Email ↗</a></div>
-            <div class="footer-copy">© 2026 Khang</div>
+            <span>© 2026 Khang</span>
+            <nav aria-label="Footer navigation">
+                <a href="/dulkanggg/">Home</a>
+                <a href="/dulkanggg/#posts">Posts</a>
+                <a href="/dulkanggg/about#projects">Projects</a>
+                <a href="/dulkanggg/about">About</a>
+            </nav>
+            <a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         </footer>
     </div>
 </body>
