@@ -1,18 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="790" viewBox="0 0 1500 790" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1420" viewBox="0 0 1000 1420" role="img" aria-labelledby="title desc">
   <title id="title">AWS multi-branch CI/CD architecture</title>
-  <desc id="desc">Test and main branches from CodeCommit feed separate CodePipeline and CodeBuild pipelines. Test deploys to its own CloudFormation stack automatically. Production waits for manual approval before deploying to a separate stack.</desc>
+  <desc id="desc">Developer pushes to CodeCommit branches. Test has an automatic CodePipeline, CodeBuild test, S3 artifact and CloudFormation deployment. Production uses a separate pipeline and waits for manual approval before its own CloudFormation deployment.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#52647a"/></marker>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#243047" flood-opacity=".10"/></filter>
-    <style>text{font-family:Inter,Segoe UI,Arial,sans-serif;fill:#15233b}.title{font-size:31px;font-weight:750}.sub{font-size:16px;fill:#53637a}.lane{font-size:20px;font-weight:700}.name{font-size:16px;font-weight:700}.detail{font-size:13px;fill:#516179}.badge{font-size:12px;font-weight:700;letter-spacing:.7px}.edge{stroke:#52647a;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.edgeTest{stroke:#15936c;stroke-width:3;fill:none;marker-end:url(#arrow)}.edgeProd{stroke:#b44b59;stroke-width:3;fill:none;marker-end:url(#arrow)}.card{fill:#fff;stroke:#d4dce7;stroke-width:1.5;filter:url(#shadow)}</style>
+    <style>text{font-family:Inter,Segoe UI,Arial,sans-serif;fill:#15233b}.title{font-size:36px;font-weight:750}.sub{font-size:20px;fill:#53637a}.lane{font-size:25px;font-weight:700}.name{font-size:22px;font-weight:700}.detail{font-size:17px;fill:#516179}.badge{font-size:16px;font-weight:700;letter-spacing:.7px}.edge{stroke:#52647a;stroke-width:3;fill:none;marker-end:url(#arrow)}.edgeTest{stroke:#15936c;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.edgeProd{stroke:#b44b59;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.card{fill:#fff;stroke:#d4dce7;stroke-width:1.5;filter:url(#shadow)}</style>
   </defs>
-  <rect width="1500" height="790" rx="24" fill="#f5f7fb"/><text x="750" y="55" text-anchor="middle" class="title">Multi-Branch CI/CD Pipeline on AWS</text><text x="750" y="83" text-anchor="middle" class="sub">Automated tests and Test deployment · Human approval before Production</text>
-  <rect x="35" y="132" width="180" height="570" rx="18" fill="#edf3ff" stroke="#cbd7eb"/><text x="125" y="169" text-anchor="middle" class="badge" fill="#385bb5">SOURCE</text><rect x="60" y="200" width="130" height="90" rx="14" class="card"/><text x="125" y="235" text-anchor="middle" class="name">Developer</text><text x="125" y="260" text-anchor="middle" class="detail">commit / merge</text><rect x="60" y="330" width="130" height="110" rx="14" class="card"/><text x="125" y="365" text-anchor="middle" class="name">CodeCommit</text><text x="125" y="390" text-anchor="middle" class="detail">test branch</text><text x="125" y="412" text-anchor="middle" class="detail">main branch</text><path d="M125 290v38" class="edge"/>
-  <rect x="250" y="132" width="1215" height="252" rx="20" fill="#eaf8f1" stroke="#a9d8c0"/><text x="280" y="171" class="lane" fill="#14704d">TEST PIPELINE</text><text x="1433" y="170" text-anchor="end" class="badge" fill="#14704d">AUTOMATIC</text>
-  <rect x="290" y="213" width="190" height="112" rx="14" class="card"/><text x="385" y="248" text-anchor="middle" class="name">CodePipeline</text><text x="385" y="274" text-anchor="middle" class="detail">source: test</text><text x="385" y="297" text-anchor="middle" class="detail">change starts run</text><rect x="535" y="213" width="190" height="112" rx="14" class="card"/><text x="630" y="248" text-anchor="middle" class="name">CodeBuild</text><text x="630" y="274" text-anchor="middle" class="detail">unit tests</text><text x="630" y="297" text-anchor="middle" class="detail">SAM package</text><rect x="780" y="213" width="190" height="112" rx="14" class="card"/><text x="875" y="248" text-anchor="middle" class="name">S3 Artifacts</text><text x="875" y="274" text-anchor="middle" class="detail">encrypted · versioned</text><text x="875" y="297" text-anchor="middle" class="detail">build output</text><rect x="1025" y="213" width="190" height="112" rx="14" class="card"/><text x="1120" y="248" text-anchor="middle" class="name">CloudFormation</text><text x="1120" y="274" text-anchor="middle" class="detail">deploy application</text><text x="1120" y="297" text-anchor="middle" class="detail">test stack</text><rect x="1270" y="213" width="155" height="112" rx="14" fill="#d8f1e4" stroke="#a9d8c0"/><text x="1347" y="252" text-anchor="middle" class="name">TEST</text><text x="1347" y="279" text-anchor="middle" class="detail">own stack</text><text x="1347" y="300" text-anchor="middle" class="detail">auto deploy</text>
-  <path d="M190 352h38v-83h54" class="edgeTest"/><path d="M480 269h52" class="edgeTest"/><path d="M725 269h52" class="edgeTest"/><path d="M970 269h52" class="edgeTest"/><path d="M1215 269h52" class="edgeTest"/>
-  <rect x="250" y="414" width="1215" height="252" rx="20" fill="#fff0f0" stroke="#e6b9bd"/><text x="280" y="453" class="lane" fill="#963844">PRODUCTION PIPELINE</text><text x="1433" y="452" text-anchor="end" class="badge" fill="#963844">CONTROLLED RELEASE</text>
-  <rect x="290" y="495" width="190" height="112" rx="14" class="card"/><text x="385" y="530" text-anchor="middle" class="name">CodePipeline</text><text x="385" y="556" text-anchor="middle" class="detail">source: main</text><text x="385" y="579" text-anchor="middle" class="detail">change starts run</text><rect x="535" y="495" width="190" height="112" rx="14" class="card"/><text x="630" y="530" text-anchor="middle" class="name">CodeBuild</text><text x="630" y="556" text-anchor="middle" class="detail">unit tests</text><text x="630" y="579" text-anchor="middle" class="detail">SAM package</text><rect x="780" y="495" width="190" height="112" rx="14" class="card"/><text x="875" y="530" text-anchor="middle" class="name">S3 Artifacts</text><text x="875" y="556" text-anchor="middle" class="detail">encrypted · versioned</text><text x="875" y="579" text-anchor="middle" class="detail">build output</text><rect x="1025" y="495" width="190" height="112" rx="14" fill="#fff3d8" stroke="#e6ca8b"/><text x="1120" y="530" text-anchor="middle" class="name">Manual Approval</text><text x="1120" y="556" text-anchor="middle" class="detail">release lead reviews</text><text x="1120" y="579" text-anchor="middle" class="detail">approve / reject</text><rect x="1270" y="495" width="155" height="112" rx="14" class="card"/><text x="1347" y="530" text-anchor="middle" class="name">CloudFormation</text><text x="1347" y="556" text-anchor="middle" class="detail">deploy after</text><text x="1347" y="579" text-anchor="middle" class="detail">approval · prod stack</text>
-  <path d="M190 410h24v141h76" class="edgeProd"/><path d="M480 551h52" class="edgeProd"/><path d="M725 551h52" class="edgeProd"/><path d="M970 551h52" class="edgeProd"/><path d="M1215 551h52" class="edgeProd"/>
-  <rect x="478" y="704" width="544" height="48" rx="12" fill="#fff" stroke="#d4dce7"/><text x="750" y="734" text-anchor="middle" class="detail">A failed test stops the run · Approval reject/timeout stops Production</text>
+  <rect width="1000" height="1420" rx="24" fill="#f5f7fb"/>
+  <text x="500" y="57" text-anchor="middle" class="title">Multi-Branch CI/CD on AWS</text>
+  <text x="500" y="91" text-anchor="middle" class="sub">Fast feedback in Test · Human approval before Production</text>
+
+  <rect x="350" y="125" width="300" height="78" rx="16" class="card"/>
+  <text x="500" y="158" text-anchor="middle" class="name">Developer</text><text x="500" y="183" text-anchor="middle" class="detail">push / merge</text>
+  <path d="M500 203v35" class="edge"/>
+  <rect x="350" y="242" width="300" height="94" rx="16" class="card"/>
+  <text x="500" y="279" text-anchor="middle" class="name">AWS CodeCommit</text><text x="500" y="307" text-anchor="middle" class="detail">test branch  ·  main branch</text>
+
+  <rect x="35" y="382" width="450" height="827" rx="22" fill="#eaf8f1" stroke="#a9d8c0" stroke-width="2"/>
+  <text x="65" y="425" class="lane" fill="#14704d">TEST PIPELINE</text><text x="455" y="425" text-anchor="end" class="badge" fill="#14704d">AUTOMATIC</text>
+  <rect x="515" y="382" width="450" height="827" rx="22" fill="#fff0f0" stroke="#e6b9bd" stroke-width="2"/>
+  <text x="545" y="425" class="lane" fill="#963844">PRODUCTION</text><text x="935" y="425" text-anchor="end" class="badge" fill="#963844">CONTROLLED</text>
+
+  <path d="M500 336v25H260v43" class="edgeTest"/><path d="M500 336v25h240v43" class="edgeProd"/>
+
+  <rect x="82" y="458" width="356" height="88" rx="15" class="card"/><text x="260" y="493" text-anchor="middle" class="name">CodePipeline</text><text x="260" y="520" text-anchor="middle" class="detail">source: test branch</text>
+  <path d="M260 546v30" class="edgeTest"/>
+  <rect x="82" y="580" width="356" height="88" rx="15" class="card"/><text x="260" y="615" text-anchor="middle" class="name">CodeBuild</text><text x="260" y="642" text-anchor="middle" class="detail">unit tests  ·  SAM package</text>
+  <path d="M260 668v30" class="edgeTest"/>
+  <rect x="82" y="702" width="356" height="88" rx="15" class="card"/><text x="260" y="737" text-anchor="middle" class="name">S3 Artifact Store</text><text x="260" y="764" text-anchor="middle" class="detail">encrypted  ·  versioned</text>
+  <path d="M260 790v30" class="edgeTest"/>
+  <rect x="82" y="824" width="356" height="88" rx="15" class="card"/><text x="260" y="859" text-anchor="middle" class="name">CloudFormation</text><text x="260" y="886" text-anchor="middle" class="detail">deploy Test stack</text>
+  <path d="M260 912v30" class="edgeTest"/>
+  <rect x="82" y="946" width="356" height="88" rx="15" fill="#d8f1e4" stroke="#a9d8c0" stroke-width="1.5"/><text x="260" y="981" text-anchor="middle" class="name">TEST ENVIRONMENT</text><text x="260" y="1008" text-anchor="middle" class="detail">automatic deployment</text>
+  <rect x="82" y="1060" width="356" height="87" rx="14" fill="#fff" stroke="#b9dcc9"/><text x="260" y="1095" text-anchor="middle" class="detail">A failed test stops this run</text><text x="260" y="1120" text-anchor="middle" class="detail">before any deployment action</text>
+
+  <rect x="562" y="458" width="356" height="88" rx="15" class="card"/><text x="740" y="493" text-anchor="middle" class="name">CodePipeline</text><text x="740" y="520" text-anchor="middle" class="detail">source: main branch</text>
+  <path d="M740 546v30" class="edgeProd"/>
+  <rect x="562" y="580" width="356" height="88" rx="15" class="card"/><text x="740" y="615" text-anchor="middle" class="name">CodeBuild</text><text x="740" y="642" text-anchor="middle" class="detail">unit tests  ·  SAM package</text>
+  <path d="M740 668v30" class="edgeProd"/>
+  <rect x="562" y="702" width="356" height="88" rx="15" class="card"/><text x="740" y="737" text-anchor="middle" class="name">S3 Artifact Store</text><text x="740" y="764" text-anchor="middle" class="detail">encrypted  ·  versioned</text>
+  <path d="M740 790v30" class="edgeProd"/>
+  <rect x="562" y="824" width="356" height="88" rx="15" fill="#fff3d8" stroke="#e6ca8b" stroke-width="1.5"/><text x="740" y="859" text-anchor="middle" class="name">Manual Approval</text><text x="740" y="886" text-anchor="middle" class="detail">release lead: approve / reject</text>
+  <path d="M740 912v30" class="edgeProd"/>
+  <rect x="562" y="946" width="356" height="88" rx="15" class="card"/><text x="740" y="981" text-anchor="middle" class="name">CloudFormation</text><text x="740" y="1008" text-anchor="middle" class="detail">deploy Production stack</text>
+  <path d="M740 1034v30" class="edgeProd"/>
+  <rect x="562" y="1068" width="356" height="88" rx="15" fill="#f9dfe1" stroke="#e6b9bd" stroke-width="1.5"/><text x="740" y="1103" text-anchor="middle" class="name">PRODUCTION</text><text x="740" y="1130" text-anchor="middle" class="detail">only after approval</text>
+
+  <rect x="82" y="1243" width="836" height="86" rx="15" fill="#fff" stroke="#d4dce7" stroke-width="1.5"/>
+  <text x="500" y="1279" text-anchor="middle" class="name">Automate repeatable checks. Keep the release decision visible.</text>
+  <text x="500" y="1307" text-anchor="middle" class="detail">Reject or approval timeout stops the Production execution.</text>
+  <text x="500" y="1374" text-anchor="middle" class="detail">Region and account values are configured when the lab is deployed.</text>
 </svg>
