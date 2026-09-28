@@ -1,18 +1,18 @@
 <%- include('partials/header', { basePath: basePath }) %>
 
+    <main>
     <article class="post-content">
-        <h1 style="color: #e2b714;">
+        <h1>
             <%= post.title %>
         </h1>
-        <div style="color: var(--accent-color); margin-bottom: 20px;">
+        <div class="post-meta">
             <span>
                 <%= post.date %>
             </span>
             <% if (post.tags) { %>
                 | Tags:
                 <% post.tags.forEach(tag=> { %>
-                    <a href="<%= basePath %>/tags/<%= tag %>"
-                        style="color: var(--accent-color); text-decoration: underline;">
+                    <a href="<%= basePath %>/tags/<%= tag %>">
                         <%= tag %>
                     </a>
                     <% }) %>
@@ -24,11 +24,10 @@
         </div>
     </article>
 
-    <div style="margin-top: 40px;">
-        <a href="<%= basePath %>/">&larr; Back to Home</a>
-    </div>
+    <a class="back-link" href="<%= basePath %>/">← Back to home</a>
+    </main>
 
-    <%- include('partials/footer') %>
+    <%- include('partials/footer') -%>
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {

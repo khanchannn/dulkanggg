@@ -1,87 +1,93 @@
 <%- include('partials/header', { basePath: basePath }) %>
 
-    <div class="search-container">
-        <h1 style="color: #e2b714;">Search</h1>
-        <input type="text" id="searchInput" placeholder="Type to search..." style="
-        width: 100%;
-        padding: 10px;
-        font-size: 1.1em;
-        background-color: var(--header-bg);
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        border-radius: 6px;
-        margin-bottom: 20px;
-        font-family: var(--font-mono);
-    ">
+<main class="search-container">
+    <div class="eyebrow"><span class="status-dot"></span> THE NOTEBOOK</div>
+    <h1>Search the writing.</h1>
+    <p class="search-intro">Look through notes on cybersecurity, infrastructure, and the things I learn along the way.</p>
+    <label class="sr-only" for="searchInput">Search posts</label>
+    <input class="search-input" type="search" id="searchInput" placeholder="Try “Wazuh”, “Linux”, or “AWS”…" autocomplete="off">
+    <p id="searchHint" class="search-hint" aria-live="polite">Enter at least two characters to search.</p>
+    <div id="searchResults" class="search-results" aria-live="polite"></div>
+</main>
 
-        <ul id="searchResults" class="post-list">
-            <!-- Results will appear here -->
-        </ul>
-    </div>
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchHint = document.getElementById('searchHint');
+    let posts = [];
 
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const searchResults = document.getElementById('searchResults');
-        let posts = [];
+    fetch('<%= basePath %>/search.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Could not load the search index.');
+            return response.json();
+        })
+        .then(data => { posts = data; })
+        .catch(() => { searchHint.textContent = 'Search is unavailable right now. Please try again later.'; });
 
-        // Fetch the search index
-        fetch('<%= basePath %>/search.json')
-            .then(response => response.json())
-            .then(data => {
-                posts = data;
-            })
-            .catch(err => console.error('Error loading search index:', err));
+    function addHighlightedText(target, text, query) {
+        const lowerText = text.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+        let cursor = 0;
+        let match = lowerText.indexOf(lowerQuery, cursor);
+        while (match !== -1) {
+            target.append(document.createTextNode(text.slice(cursor, match)));
+            const mark = document.createElement('mark');
+            mark.textContent = text.slice(match, match + query.length);
+            target.append(mark);
+            cursor = match + query.length;
+            match = lowerText.indexOf(lowerQuery, cursor);
+        }
+        target.append(document.createTextNode(text.slice(cursor)));
+    }
 
-        function highlightText(text, query) {
-            if (!query) return text;
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<mark style="background-color: yellow; color: black;">$1</mark>');
+    function getSnippet(body, query) {
+        const plain = body.replace(/```[\s\S]*?```/g, ' code example ')
+            .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+            .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+            .replace(/[#>*_`~-]/g, ' ').replace(/\s+/g, ' ').trim();
+        const index = plain.toLowerCase().indexOf(query.toLowerCase());
+        const start = Math.max(0, (index < 0 ? 0 : index) - 55);
+        const end = Math.min(plain.length, (index < 0 ? 135 : index + query.length + 95));
+        return `${start > 0 ? '…' : ''}${plain.slice(start, end)}${end < plain.length ? '…' : ''}`;
+    }
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        searchResults.replaceChildren();
+        if (query.length < 2) {
+            searchHint.textContent = 'Enter at least two characters to search.';
+            return;
         }
 
-        function getSnippet(body, query) {
-            if (!query) return body.substring(0, 150) + '...';
-            const index = body.toLowerCase().indexOf(query);
-            if (index === -1) return body.substring(0, 150) + '...';
+        const matches = posts.filter(post => post.title.toLowerCase().includes(query.toLowerCase())
+            || post.body.toLowerCase().includes(query.toLowerCase())
+            || (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))));
+        searchHint.textContent = `${matches.length} ${matches.length === 1 ? 'result' : 'results'} found.`;
 
-            const start = Math.max(0, index - 50);
-            const end = Math.min(body.length, index + 100);
-            return '...' + body.substring(start, end) + '...';
+        if (!matches.length) {
+            const empty = document.createElement('p');
+            empty.className = 'search-hint';
+            empty.textContent = 'No matching posts. Try a broader search.';
+            searchResults.append(empty);
+            return;
         }
 
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            searchResults.innerHTML = '';
-
-            if (query.length < 2) return;
-
-            const filteredPosts = posts.filter(post => {
-                const inTitle = post.title.toLowerCase().includes(query);
-                const inBody = post.body.toLowerCase().includes(query);
-                const inTags = post.tags && post.tags.some(tag => tag.toLowerCase().includes(query));
-                return inTitle || inBody || inTags;
-            });
-
-            if (filteredPosts.length === 0) {
-                searchResults.innerHTML = '<li>No results found.</li>';
-                return;
-            }
-
-            filteredPosts.forEach(post => {
-                const li = document.createElement('li');
-                li.className = 'post-item';
-
-                const highlightedTitle = highlightText(post.title, query);
-                const snippet = getSnippet(post.body, query);
-                const highlightedSnippet = highlightText(snippet, query);
-
-                li.innerHTML = `
-                <span class="post-date">${post.date}</span>
-                <span class="post-title"><a href="<%= basePath %>/post/${post.slug}">${highlightedTitle}</a></span>
-                <p style="font-size: 0.9em; color: #ccc; margin-top: 5px;">${highlightedSnippet}</p>
-            `;
-                searchResults.appendChild(li);
-            });
+        matches.forEach(post => {
+            const result = document.createElement('a');
+            result.className = 'search-result';
+            result.href = `<%= basePath %>/post/${encodeURIComponent(post.slug)}`;
+            const title = document.createElement('div');
+            title.className = 'search-result-title';
+            addHighlightedText(title, post.title, query);
+            const date = document.createElement('span');
+            date.className = 'search-result-date';
+            date.textContent = post.date;
+            const snippet = document.createElement('p');
+            addHighlightedText(snippet, getSnippet(post.body, query), query);
+            result.append(title, date, snippet);
+            searchResults.append(result);
         });
-    </script>
+    });
+</script>
 
-    <%- include('partials/footer') %>
+<%- include('partials/footer') -%>
