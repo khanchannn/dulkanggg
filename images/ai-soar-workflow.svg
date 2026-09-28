@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 2120" role="img" aria-labelledby="title desc">
+  <title id="title">AI-SOAR n8n workflow overview</title>
+  <desc id="desc">A readable workflow overview: Wazuh webhook, configuration and normalization, input sanitization and deduplication, then parallel source-IP reputation and bounded Linux log evidence paths. Local Qwen3 summarizes evidence and drafts an advisory incident report for notifications. Errors use a side flow. The public workflow is inactive and has no UFW action.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M1 1 L13 7 L1 13 Z" fill="#415a77"/></marker>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M1 1 L13 7 L1 13 Z" fill="#087e8b"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#1b2a41" flood-opacity=".10"/></filter>
+    <style>
+      text{font-family:Arial,Helvetica,sans-serif;fill:#15243a}.title{font-size:54px;font-weight:700}.sub{font-size:25px;fill:#52647b}.section{font-size:22px;font-weight:700;letter-spacing:1.2px}.card-title{font-size:30px;font-weight:700}.body{font-size:24px;fill:#52647b}.small{font-size:19px;fill:#52647b}.label{font-size:18px;font-weight:700;fill:#415a77}
+    </style>
+  </defs>
+  <rect width="1200" height="2120" rx="28" fill="#f4f7fb"/>
+  <path d="M0 130H1200" stroke="#d9e2ec" stroke-width="2"/>
+  <text x="64" y="72" class="title">AI-SOAR n8n Workflow</text>
+  <text x="66" y="110" class="sub">Public lab reference · local AI is advisory · automatic containment disabled</text>
+
+  <!-- sequential intake -->
+  <g filter="url(#shadow)">
+    <rect x="170" y="160" width="860" height="108" rx="18" fill="#fff" stroke="#a9bfdc" stroke-width="2"/>
+    <rect x="170" y="307" width="860" height="108" rx="18" fill="#fff" stroke="#a9bfdc" stroke-width="2"/>
+    <rect x="170" y="454" width="860" height="108" rx="18" fill="#fff" stroke="#a9bfdc" stroke-width="2"/>
+    <rect x="170" y="601" width="860" height="108" rx="18" fill="#fff" stroke="#a9bfdc" stroke-width="2"/>
+    <rect x="170" y="748" width="860" height="108" rx="18" fill="#fff" stroke="#a9bfdc" stroke-width="2"/>
+  </g>
+  <circle cx="225" cy="214" r="25" fill="#dceafe"/><text x="216" y="223" class="card-title" fill="#315a8a">1</text>
+  <text x="276" y="207" class="card-title">Wazuh Webhook</text><text x="276" y="240" class="body">Receive a selected alert event</text>
+  <circle cx="225" cy="361" r="25" fill="#dceafe"/><text x="216" y="370" class="card-title" fill="#315a8a">2</text>
+  <text x="276" y="354" class="card-title">Configuration + normalization</text><text x="276" y="387" class="body">Prepare a consistent event shape</text>
+  <circle cx="225" cy="508" r="25" fill="#dceafe"/><text x="216" y="517" class="card-title" fill="#315a8a">3</text>
+  <text x="276" y="501" class="card-title">Input sanitization + validation</text><text x="276" y="534" class="body">Check source IP and required alert fields</text>
+  <circle cx="225" cy="655" r="25" fill="#dceafe"/><text x="216" y="664" class="card-title" fill="#315a8a">4</text>
+  <text x="276" y="648" class="card-title">Deduplicate / cooldown</text><text x="276" y="681" class="body">Suppress repeated IP + rule + agent events</text>
+  <circle cx="225" cy="802" r="25" fill="#dceafe"/><text x="216" y="811" class="card-title" fill="#315a8a">5</text>
+  <text x="276" y="795" class="card-title">Route to supported Linux evidence path</text><text x="276" y="828" class="body">Other host paths are outside the validated scope</text>
+  <path d="M600 268V307M600 415V454M600 562V601M600 709V748" fill="none" stroke="#415a77" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <!-- branch zones -->
+  <rect x="55" y="930" width="530" height="440" rx="22" fill="#edf7f5" stroke="#a3d0ca" stroke-width="2"/>
+  <rect x="615" y="930" width="530" height="440" rx="22" fill="#eef4ff" stroke="#b6c9e4" stroke-width="2"/>
+  <text x="85" y="976" class="section" fill="#16746e">2A · THREAT INTELLIGENCE</text>
+  <text x="645" y="976" class="section" fill="#315a8a">2B · HOST LOG EVIDENCE</text>
+  <g filter="url(#shadow)">
+    <rect x="92" y="1012" width="456" height="88" rx="15" fill="#fff" stroke="#b4d8d2" stroke-width="2"/>
+    <rect x="92" y="1123" width="456" height="88" rx="15" fill="#fff" stroke="#b4d8d2" stroke-width="2"/>
+    <rect x="92" y="1234" width="456" height="88" rx="15" fill="#fff" stroke="#b4d8d2" stroke-width="2"/>
+    <rect x="652" y="1012" width="456" height="88" rx="15" fill="#fff" stroke="#b6c9e4" stroke-width="2"/>
+    <rect x="652" y="1123" width="456" height="88" rx="15" fill="#fff" stroke="#b6c9e4" stroke-width="2"/>
+    <rect x="652" y="1234" width="456" height="88" rx="15" fill="#fff" stroke="#b6c9e4" stroke-width="2"/>
+  </g>
+  <text x="120" y="1050" class="card-title">VirusTotal</text><text x="120" y="1080" class="body">Source-IP reputation lookup</text>
+  <text x="120" y="1161" class="card-title">AbuseIPDB</text><text x="120" y="1191" class="body">Abuse-confidence lookup</text>
+  <text x="120" y="1272" class="card-title">Merge reputation context</text><text x="120" y="1302" class="body">Supporting evidence, not a verdict</text>
+  <text x="680" y="1050" class="card-title">Restricted SSH read</text><text x="680" y="1080" class="body">Retrieve bounded Linux log lines</text>
+  <text x="680" y="1161" class="card-title">Stage 1 · local Qwen3:8B</text><text x="680" y="1191" class="body">Extract relevant log evidence</text>
+  <text x="680" y="1272" class="card-title">Keep the original alert</text><text x="680" y="1302" class="body">Wazuh remains the source of truth</text>
+  <path d="M600 856V900H320V1012M880 900V1012" fill="none" stroke="#087e8b" stroke-width="4" marker-end="url(#arrow-teal)"/>
+  <text x="477" y="894" class="label">validated alert</text>
+  <path d="M320 1100V1123M320 1211V1234M880 1100V1123M880 1211V1234" fill="none" stroke="#087e8b" stroke-width="3" marker-end="url(#arrow-teal)"/>
+
+  <!-- correlation and reporting -->
+  <g filter="url(#shadow)">
+    <rect x="170" y="1430" width="860" height="112" rx="18" fill="#fff" stroke="#e8c39d" stroke-width="2"/>
+    <rect x="170" y="1593" width="410" height="130" rx="18" fill="#fff" stroke="#e8c39d" stroke-width="2"/>
+    <rect x="620" y="1593" width="410" height="130" rx="18" fill="#fff" stroke="#e8c39d" stroke-width="2"/>
+  </g>
+  <path d="M320 1322V1392H430V1430M880 1322V1392H770V1430" fill="none" stroke="#415a77" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="224" y="1476" class="card-title">Assemble alert + reputation + log evidence</text>
+  <text x="224" y="1512" class="body">Retain source and uncertainty for analyst review</text>
+  <text x="200" y="1640" class="card-title">Local SOC report</text><text x="200" y="1675" class="body">Stage 2 · Qwen3:8B · advisory</text>
+  <text x="650" y="1640" class="card-title">Notification router</text><text x="650" y="1675" class="body">Discord · Telegram</text><text x="650" y="1705" class="small">Analyst reviews before action</text>
+  <path d="M600 1542V1593M580 1658H620" fill="none" stroke="#415a77" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <!-- error side flow -->
+  <rect x="55" y="1780" width="1090" height="168" rx="22" fill="#fff1ef" stroke="#e3b0a8" stroke-width="2"/>
+  <text x="85" y="1822" class="section" fill="#a33c32">ERROR NOTIFICATION · SIDE FLOW</text>
+  <g filter="url(#shadow)">
+    <rect x="92" y="1850" width="280" height="68" rx="14" fill="#fff" stroke="#e3b0a8" stroke-width="2"/>
+    <rect x="445" y="1850" width="310" height="68" rx="14" fill="#fff" stroke="#e3b0a8" stroke-width="2"/>
+    <rect x="828" y="1850" width="280" height="68" rx="14" fill="#fff" stroke="#e3b0a8" stroke-width="2"/>
+  </g>
+  <text x="118" y="1894" class="card-title">n8n Error Trigger</text>
+  <text x="471" y="1894" class="card-title">Format error</text>
+  <text x="852" y="1894" class="card-title">Notify Discord</text>
+  <path d="M372 1884H445M755 1884H828" fill="none" stroke="#a33c32" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="115" y="1980" width="970" height="96" rx="18" fill="#fff5f3" stroke="#e3b0a8" stroke-width="2"/>
+  <text x="150" y="2020" class="card-title" fill="#a33c32">Automatic UFW containment is omitted</text>
+  <text x="150" y="2052" class="body">Inactive by default · no UFW node · no autonomous-blocking claim</text>
+  <text x="64" y="2102" class="small">Configure credentials in n8n’s credential store. Test synthetic alerts in an isolated lab.</text>
+</svg>
