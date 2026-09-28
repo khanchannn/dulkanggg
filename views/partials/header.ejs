@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b1120">
-    <meta name="description" content="Khang's cybersecurity portfolio and notebook: security operations, application security, and infrastructure labs.">
+    <meta name="theme-color" content="#202326">
+    <meta name="description" content="Khang's notes and projects on cybersecurity, security operations, and infrastructure.">
     <title><%= title %></title>
     <link rel="icon" href="<%= basePath %>/images/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<%= basePath %>/css/style.css?v=cf68e88">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<%= basePath %>/css/style.css?v=20260928-simple-layout">
 </head>
-<body>
-    <div class="site-shell">
+<body id="top">
+    <div class="container">
         <header class="site-header">
-            <a href="<%= basePath %>/" class="brand" aria-label="Dulkanggg's Corner home">
-                <span class="brand-mark" aria-hidden="true">K<span>.</span></span>
-                <span class="brand-copy"><strong>Dulkanggg's Corner</strong><small>SECURITY · SYSTEMS · NOTES</small></span>
+            <a href="<%= basePath %>/" class="site-logo">
+                <img src="<%= basePath %>/images/logo.png" alt="" width="40" height="40">
+                <span>Dulkanggg's Corner</span>
             </a>
             <nav class="site-nav" aria-label="Main navigation">
                 <a href="<%= basePath %>/">Home</a>
-                <a href="<%= basePath %>/search.html">Writing</a>
+                <a href="<%= basePath %>/#posts">Posts</a>
+                <a href="<%= basePath %>/about#projects">Projects</a>
+                <a href="<%= basePath %>/search.html">Search</a>
                 <a href="<%= basePath %>/about">About</a>
-                <a class="nav-github" href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
             </nav>
         </header>
-        <div class="site-content">

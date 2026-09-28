@@ -1,8 +1,12 @@
-        </div>
         <footer class="site-footer">
-            <div><a class="footer-brand" href="<%= typeof basePath !== 'undefined' ? basePath + '/' : '/' %>">Khang <span>·</span> Dulkanggg's Corner</a><p>Notes on building, defending, and understanding systems.</p></div>
-            <div class="footer-links"><a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://www.linkedin.com/in/khangtran0105" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="mailto:thuakhangtran12@gmail.com">Email ↗</a></div>
-            <div class="footer-copy">© <%= new Date().getFullYear() %> Khang</div>
+            <span>© <%= new Date().getFullYear() %> Khang</span>
+            <nav aria-label="Footer navigation">
+                <a href="<%= typeof basePath !== 'undefined' ? basePath + '/' : '/' %>">Home</a>
+                <a href="<%= typeof basePath !== 'undefined' ? basePath + '/#posts' : '/#posts' %>">Posts</a>
+                <a href="<%= typeof basePath !== 'undefined' ? basePath + '/about#projects' : '/about#projects' %>">Projects</a>
+                <a href="<%= typeof basePath !== 'undefined' ? basePath + '/about' : '/about' %>">About</a>
+            </nav>
+            <a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         </footer>
     </div>
 </body>

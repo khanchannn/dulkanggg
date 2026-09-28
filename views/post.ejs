@@ -1,57 +1,31 @@
 <%- include('partials/header', { basePath: basePath }) %>
 
-    <main>
+<main>
     <article class="post-content">
-        <h1>
-            <%= post.title %>
-        </h1>
-        <div class="post-meta">
-            <span>
-                <%= post.date %>
-            </span>
-            <% if (post.tags) { %>
-                | Tags:
-                <% post.tags.forEach(tag=> { %>
-                    <a href="<%= basePath %>/tags/<%= tag %>">
-                        <%= tag %>
-                    </a>
-                    <% }) %>
-                        <% } %>
-        </div>
-
-        <div>
-            <%- post.htmlContent %>
-        </div>
+        <h1><%= post.title %></h1>
+        <div class="post-meta"><time datetime="<%= post.date %>"><%= post.date %></time><% if (post.tags && post.tags.length) { %> · <% post.tags.forEach((tag, index) => { %><a href="<%= basePath %>/tags/<%= tag %>"><%= tag %></a><%= index < post.tags.length - 1 ? ' · ' : '' %><% }); %><% } %></div>
+        <div class="post-body"><%- post.htmlContent %></div>
+        <a class="back-link" href="<%= basePath %>/">← Back to posts</a>
     </article>
+</main>
 
-    <a class="back-link" href="<%= basePath %>/">← Back to home</a>
-    </main>
-
-    <%- include('partials/footer') -%>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const codeBlocks = document.querySelectorAll('.post-content pre');
-
-                codeBlocks.forEach(pre => {
-                    const button = document.createElement('button');
-                    button.className = 'copy-btn';
-                    button.textContent = 'Copy';
-
-                    button.addEventListener('click', () => {
-                        const code = pre.querySelector('code').innerText;
-                        navigator.clipboard.writeText(code).then(() => {
-                            button.textContent = 'Copied!';
-                            setTimeout(() => {
-                                button.textContent = 'Copy';
-                            }, 2000);
-                        }).catch(err => {
-                            console.error('Failed to copy:', err);
-                            button.textContent = 'Error';
-                        });
-                    });
-
-                    pre.appendChild(button);
-                });
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.post-content pre').forEach(pre => {
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.type = 'button';
+            button.textContent = 'Copy';
+            button.addEventListener('click', () => {
+                const code = pre.querySelector('code')?.innerText || pre.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    button.textContent = 'Copied!';
+                    setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                }).catch(() => { button.textContent = 'Error'; });
             });
-        </script>
+            pre.append(button);
+        });
+    });
+</script>
+
+<%- include('partials/footer') -%>
