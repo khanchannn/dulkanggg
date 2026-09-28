@@ -2,7 +2,8 @@ module.exports = [
     {
         year: '2026',
         title: 'AI-SOAR Security Monitoring Lab',
-        description: 'A multi-VM Wazuh lab with n8n workflows for alert intake, IOC enrichment, incident reports, and rule-based UFW containment.'
+        description: 'A Wazuh, n8n, and local Qwen3:8B SOC workflow for alert enrichment and analyst reports, with automated containment intentionally disabled pending safety validation.',
+        url: 'https://github.com/khanchannn/ai-soc-analyst-l1'
     },
     {
         year: '2025–2026',
