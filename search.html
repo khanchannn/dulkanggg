@@ -1,128 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        Search - Dulkanggg&#39;s Corner
-    </title>
+    <meta name="theme-color" content="#0b1120">
+    <meta name="description" content="Khang's cybersecurity portfolio and notebook: security operations, application security, and infrastructure labs.">
+    <title>Search - Dulkanggg&#39;s Corner</title>
     <link rel="icon" href="/dulkanggg/images/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/dulkanggg/css/style.css">
 </head>
-
 <body>
-    <div class="container">
-        <header>
-            <a href="/dulkanggg/" class="logo">
-                <img src="/dulkanggg/images/logo.png" alt="Logo"
-                    style="height: 40px; vertical-align: middle; margin-right: 10px;">
-                Dulkanggg's Corner
+    <div class="site-shell">
+        <header class="site-header">
+            <a href="/dulkanggg/" class="brand" aria-label="Dulkanggg's Corner home">
+                <span class="brand-mark" aria-hidden="true">K<span>.</span></span>
+                <span class="brand-copy"><strong>Dulkanggg's Corner</strong><small>SECURITY · SYSTEMS · NOTES</small></span>
             </a>
-            <nav>
+            <nav class="site-nav" aria-label="Main navigation">
                 <a href="/dulkanggg/">Home</a>
-                <a href="/dulkanggg/search.html">Search</a>
+                <a href="/dulkanggg/search.html">Writing</a>
                 <a href="/dulkanggg/about">About</a>
-                <a href="/dulkanggg/rss">RSS</a>
+                <a class="nav-github" href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
             </nav>
         </header>
+        <div class="site-content">
 
-    <div class="search-container">
-        <h1 style="color: #e2b714;">Search</h1>
-        <input type="text" id="searchInput" placeholder="Type to search..." style="
-        width: 100%;
-        padding: 10px;
-        font-size: 1.1em;
-        background-color: var(--header-bg);
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        border-radius: 6px;
-        margin-bottom: 20px;
-        font-family: var(--font-mono);
-    ">
 
-        <ul id="searchResults" class="post-list">
-            <!-- Results will appear here -->
-        </ul>
-    </div>
+<main class="search-container">
+    <div class="eyebrow"><span class="status-dot"></span> THE NOTEBOOK</div>
+    <h1>Search the writing.</h1>
+    <p class="search-intro">Look through notes on cybersecurity, infrastructure, and the things I learn along the way.</p>
+    <label class="sr-only" for="searchInput">Search posts</label>
+    <input class="search-input" type="search" id="searchInput" placeholder="Try “Wazuh”, “Linux”, or “AWS”…" autocomplete="off">
+    <p id="searchHint" class="search-hint" aria-live="polite">Enter at least two characters to search.</p>
+    <div id="searchResults" class="search-results" aria-live="polite"></div>
+</main>
 
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const searchResults = document.getElementById('searchResults');
-        let posts = [];
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchHint = document.getElementById('searchHint');
+    let posts = [];
 
-        // Fetch the search index
-        fetch('/dulkanggg/search.json')
-            .then(response => response.json())
-            .then(data => {
-                posts = data;
-            })
-            .catch(err => console.error('Error loading search index:', err));
+    fetch('/dulkanggg/search.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Could not load the search index.');
+            return response.json();
+        })
+        .then(data => { posts = data; })
+        .catch(() => { searchHint.textContent = 'Search is unavailable right now. Please try again later.'; });
 
-        function highlightText(text, query) {
-            if (!query) return text;
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<mark style="background-color: yellow; color: black;">$1</mark>');
+    function addHighlightedText(target, text, query) {
+        const lowerText = text.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+        let cursor = 0;
+        let match = lowerText.indexOf(lowerQuery, cursor);
+        while (match !== -1) {
+            target.append(document.createTextNode(text.slice(cursor, match)));
+            const mark = document.createElement('mark');
+            mark.textContent = text.slice(match, match + query.length);
+            target.append(mark);
+            cursor = match + query.length;
+            match = lowerText.indexOf(lowerQuery, cursor);
+        }
+        target.append(document.createTextNode(text.slice(cursor)));
+    }
+
+    function getSnippet(body, query) {
+        const plain = body.replace(/```[\s\S]*?```/g, ' code example ')
+            .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+            .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+            .replace(/[#>*_`~-]/g, ' ').replace(/\s+/g, ' ').trim();
+        const index = plain.toLowerCase().indexOf(query.toLowerCase());
+        const start = Math.max(0, (index < 0 ? 0 : index) - 55);
+        const end = Math.min(plain.length, (index < 0 ? 135 : index + query.length + 95));
+        return `${start > 0 ? '…' : ''}${plain.slice(start, end)}${end < plain.length ? '…' : ''}`;
+    }
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        searchResults.replaceChildren();
+        if (query.length < 2) {
+            searchHint.textContent = 'Enter at least two characters to search.';
+            return;
         }
 
-        function getSnippet(body, query) {
-            if (!query) return body.substring(0, 150) + '...';
-            const index = body.toLowerCase().indexOf(query);
-            if (index === -1) return body.substring(0, 150) + '...';
+        const matches = posts.filter(post => post.title.toLowerCase().includes(query.toLowerCase())
+            || post.body.toLowerCase().includes(query.toLowerCase())
+            || (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))));
+        searchHint.textContent = `${matches.length} ${matches.length === 1 ? 'result' : 'results'} found.`;
 
-            const start = Math.max(0, index - 50);
-            const end = Math.min(body.length, index + 100);
-            return '...' + body.substring(start, end) + '...';
+        if (!matches.length) {
+            const empty = document.createElement('p');
+            empty.className = 'search-hint';
+            empty.textContent = 'No matching posts. Try a broader search.';
+            searchResults.append(empty);
+            return;
         }
 
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            searchResults.innerHTML = '';
-
-            if (query.length < 2) return;
-
-            const filteredPosts = posts.filter(post => {
-                const inTitle = post.title.toLowerCase().includes(query);
-                const inBody = post.body.toLowerCase().includes(query);
-                const inTags = post.tags && post.tags.some(tag => tag.toLowerCase().includes(query));
-                return inTitle || inBody || inTags;
-            });
-
-            if (filteredPosts.length === 0) {
-                searchResults.innerHTML = '<li>No results found.</li>';
-                return;
-            }
-
-            filteredPosts.forEach(post => {
-                const li = document.createElement('li');
-                li.className = 'post-item';
-
-                const highlightedTitle = highlightText(post.title, query);
-                const snippet = getSnippet(post.body, query);
-                const highlightedSnippet = highlightText(snippet, query);
-
-                li.innerHTML = `
-                <span class="post-date">${post.date}</span>
-                <span class="post-title"><a href="/dulkanggg/post/${post.slug}">${highlightedTitle}</a></span>
-                <p style="font-size: 0.9em; color: #ccc; margin-top: 5px;">${highlightedSnippet}</p>
-            `;
-                searchResults.appendChild(li);
-            });
+        matches.forEach(post => {
+            const result = document.createElement('a');
+            result.className = 'search-result';
+            result.href = `/dulkanggg/post/${encodeURIComponent(post.slug)}`;
+            const title = document.createElement('div');
+            title.className = 'search-result-title';
+            addHighlightedText(title, post.title, query);
+            const date = document.createElement('span');
+            date.className = 'search-result-date';
+            date.textContent = post.date;
+            const snippet = document.createElement('p');
+            addHighlightedText(snippet, getSnippet(post.body, query), query);
+            result.append(title, date, snippet);
+            searchResults.append(result);
         });
-    </script>
+    });
+</script>
 
-    <footer>
-    <p>&copy; 2026 Khang. All rights reserved.</p>
-    <div class="social-links">
-        <a href="https://github.com/khanchannn" target="_blank">GitHub</a>
-        <a href="https://www.facebook.com/dulkanggg1504/" target="_blank">Facebook</a>
-        <a href="mailto:dulkanggg1504@gmail.com">Email</a>
+        </div>
+        <footer class="site-footer">
+            <div><a class="footer-brand" href="/dulkanggg/">Khang <span>·</span> Dulkanggg's Corner</a><p>Notes on building, defending, and understanding systems.</p></div>
+            <div class="footer-links"><a href="https://github.com/khanchannn" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://www.linkedin.com/in/khangtran0105" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="mailto:thuakhangtran12@gmail.com">Email ↗</a></div>
+            <div class="footer-copy">© 2026 Khang</div>
+        </footer>
     </div>
-</footer>
-</div> <!-- End container -->
 </body>
-
 </html>
