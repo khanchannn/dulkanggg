@@ -14,7 +14,7 @@ For a while, deploying a small app by hand feels manageable. Then a test gets sk
 
 This lab uses two CodeCommit branches and two separate CodePipelines. A push to `test` runs unit tests, packages the app, and deploys a Test stack through CloudFormation. A push to `main` runs the same checks, then stops at a manual approval action before CloudFormation can update the Production stack.
 
-![AWS CI/CD architecture: CodeCommit test and main branches feed separate CodePipeline and CodeBuild pipelines, with manual approval before Production CloudFormation deployment](../../images/aws-multibranch-cicd-architecture.svg)
+![AWS CI/CD architecture: CodeCommit test and main branches feed separate CodePipeline and CodeBuild pipelines, with manual approval before Production CloudFormation deployment](../../images/aws-multibranch-cicd-architecture-v2.svg)
 
 *Figure 1. Test deploys automatically; Production waits for a release lead. / Hình 1. Test được triển khai tự động; Production chờ release lead phê duyệt.*
 
