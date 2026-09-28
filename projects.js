@@ -19,6 +19,7 @@ module.exports = [
     {
         year: '2026',
         title: 'AWS Multi-Branch CI/CD Lab',
-        description: 'Test and production pipelines using CodePipeline and CodeBuild, with an approval gate before production deployment.'
+        description: 'Two CodeCommit-triggered pipelines run tests and package a SAM app; Test deploys automatically while Production waits for manual approval.',
+        url: 'https://github.com/khanchannn/aws-multibranch-cicd-lab'
     }
 ];
