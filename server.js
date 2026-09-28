@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const marked = require('marked');
 const frontMatter = require('front-matter');
+const projects = require('./projects');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,6 +45,11 @@ app.get('/about', (req, res) => {
     res.render('about', { title: "About Me - Dulkanggg's Corner", basePath: '' });
 });
 
+// Projects
+app.get('/projects', (req, res) => {
+    res.render('projects', { projects, title: "Projects - Dulkanggg's Corner", basePath: '' });
+});
+
 // Post Detail
 app.get('/post/:slug', (req, res) => {
     const posts = getPosts();
@@ -59,7 +65,7 @@ app.get('/tags/:tag', (req, res) => {
     const posts = getPosts();
     const tag = req.params.tag;
     const filteredPosts = posts.filter(p => p.tags && p.tags.includes(tag));
-    res.render('index', { posts: filteredPosts, title: `Tag: ${tag}`, basePath: '' });
+    res.render('tag', { posts: filteredPosts, tag, title: `Tag: ${tag} - Dulkanggg's Corner`, basePath: '' });
 });
 
 // Search Page (Static style)

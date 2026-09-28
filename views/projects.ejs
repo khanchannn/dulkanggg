@@ -1,0 +1,18 @@
+<%- include('partials/header', { basePath: basePath }) %>
+
+<main class="project-archive">
+    <h1 class="year-heading"><span aria-hidden="true">◆</span> Projects</h1>
+    <p class="page-intro">A short list of security and infrastructure work from my labs and coursework.</p>
+    <% projects.forEach(project => { %>
+        <article class="project-row">
+            <time class="project-year"><%= project.year %></time>
+            <div>
+                <h2><%= project.title %></h2>
+                <p><%= project.description %></p>
+                <% if (project.url) { %><a href="<%= project.url %>" target="_blank" rel="noopener noreferrer">Project repository ↗</a><% } %>
+            </div>
+        </article>
+    <% }); %>
+</main>
+
+<%- include('partials/footer') -%>

@@ -1,13 +1,11 @@
 <%- include('partials/header', { basePath: basePath }) %>
 
-<main class="search-container">
-    <div class="eyebrow"><span class="status-dot"></span> THE NOTEBOOK</div>
-    <h1>Search the writing.</h1>
-    <p class="search-intro">Look through notes on cybersecurity, infrastructure, and the things I learn along the way.</p>
+<main class="search-page">
+    <h1 class="year-heading"><span aria-hidden="true">⌕</span> Search</h1>
     <label class="sr-only" for="searchInput">Search posts</label>
-    <input class="search-input" type="search" id="searchInput" placeholder="Try “Wazuh”, “Linux”, or “AWS”…" autocomplete="off">
-    <p id="searchHint" class="search-hint" aria-live="polite">Enter at least two characters to search.</p>
-    <div id="searchResults" class="search-results" aria-live="polite"></div>
+    <input class="search-input" type="search" id="searchInput" placeholder="Search posts…" autocomplete="off">
+    <p id="searchHint" class="search-hint" aria-live="polite">Enter at least two characters.</p>
+    <div id="searchResults" class="search-results"></div>
 </main>
 
 <script>
@@ -18,17 +16,17 @@
 
     fetch('<%= basePath %>/search.json')
         .then(response => {
-            if (!response.ok) throw new Error('Could not load the search index.');
+            if (!response.ok) throw new Error('Search index unavailable');
             return response.json();
         })
         .then(data => { posts = data; })
-        .catch(() => { searchHint.textContent = 'Search is unavailable right now. Please try again later.'; });
+        .catch(() => { searchHint.textContent = 'Search is unavailable right now.'; });
 
-    function addHighlightedText(target, text, query) {
+    function appendHighlight(target, text, query) {
         const lowerText = text.toLowerCase();
         const lowerQuery = query.toLowerCase();
         let cursor = 0;
-        let match = lowerText.indexOf(lowerQuery, cursor);
+        let match = lowerText.indexOf(lowerQuery);
         while (match !== -1) {
             target.append(document.createTextNode(text.slice(cursor, match)));
             const mark = document.createElement('mark');
@@ -40,52 +38,38 @@
         target.append(document.createTextNode(text.slice(cursor)));
     }
 
-    function getSnippet(body, query) {
-        const plain = body.replace(/```[\s\S]*?```/g, ' code example ')
-            .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
-            .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-            .replace(/[#>*_`~-]/g, ' ').replace(/\s+/g, ' ').trim();
-        const index = plain.toLowerCase().indexOf(query.toLowerCase());
-        const start = Math.max(0, (index < 0 ? 0 : index) - 55);
-        const end = Math.min(plain.length, (index < 0 ? 135 : index + query.length + 95));
-        return `${start > 0 ? '…' : ''}${plain.slice(start, end)}${end < plain.length ? '…' : ''}`;
-    }
-
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.trim();
         searchResults.replaceChildren();
         if (query.length < 2) {
-            searchHint.textContent = 'Enter at least two characters to search.';
+            searchHint.textContent = 'Enter at least two characters.';
             return;
         }
 
-        const matches = posts.filter(post => post.title.toLowerCase().includes(query.toLowerCase())
-            || post.body.toLowerCase().includes(query.toLowerCase())
-            || (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))));
-        searchHint.textContent = `${matches.length} ${matches.length === 1 ? 'result' : 'results'} found.`;
+        const lowered = query.toLowerCase();
+        const matches = posts.filter(post => post.title.toLowerCase().includes(lowered)
+            || post.body.toLowerCase().includes(lowered)
+            || (post.tags && post.tags.some(tag => tag.toLowerCase().includes(lowered))));
+        searchHint.textContent = `${matches.length} ${matches.length === 1 ? 'result' : 'results'}`;
 
         if (!matches.length) {
-            const empty = document.createElement('p');
-            empty.className = 'search-hint';
-            empty.textContent = 'No matching posts. Try a broader search.';
-            searchResults.append(empty);
+            searchHint.textContent = 'No matching posts.';
             return;
         }
 
         matches.forEach(post => {
-            const result = document.createElement('a');
-            result.className = 'search-result';
-            result.href = `<%= basePath %>/post/${encodeURIComponent(post.slug)}`;
-            const title = document.createElement('div');
-            title.className = 'search-result-title';
-            addHighlightedText(title, post.title, query);
-            const date = document.createElement('span');
-            date.className = 'search-result-date';
+            const row = document.createElement('article');
+            row.className = 'post-row';
+            const date = document.createElement('time');
+            date.className = 'post-date';
+            date.dateTime = post.date;
             date.textContent = post.date;
-            const snippet = document.createElement('p');
-            addHighlightedText(snippet, getSnippet(post.body, query), query);
-            result.append(title, date, snippet);
-            searchResults.append(result);
+            const title = document.createElement('a');
+            title.className = 'post-title';
+            title.href = `<%= basePath %>/post/${encodeURIComponent(post.slug)}`;
+            appendHighlight(title, post.title, query);
+            row.append(date, title);
+            searchResults.append(row);
         });
     });
 </script>

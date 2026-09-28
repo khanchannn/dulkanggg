@@ -3,6 +3,7 @@ const path = require('path');
 const ejs = require('ejs');
 const frontMatter = require('front-matter');
 const marked = require('marked');
+const projects = require('./projects');
 
 const distDir = path.join(__dirname, 'dist');
 const viewsDir = path.join(__dirname, 'views');
@@ -107,7 +108,37 @@ async function build() {
     });
     fs.writeFileSync(path.join(distDir, 'about.html'), aboutHtml);
 
-    // Create search.json
+    // 6. Build Projects page
+    console.log('Building Projects page...');
+    const projectsTemplate = fs.readFileSync(path.join(viewsDir, 'projects.ejs'), 'utf-8');
+    const projectsHtml = ejs.render(projectsTemplate, {
+        projects,
+        title: "Projects - Dulkanggg's Corner",
+        filename: path.join(viewsDir, 'projects.ejs'),
+        basePath: '/dulkanggg'
+    });
+    const projectsDir = path.join(distDir, 'projects');
+    fs.mkdirSync(projectsDir, { recursive: true });
+    fs.writeFileSync(path.join(projectsDir, 'index.html'), projectsHtml);
+
+    // 7. Build tag archives
+    console.log('Building tag pages...');
+    const tagTemplate = fs.readFileSync(path.join(viewsDir, 'tag.ejs'), 'utf-8');
+    const tags = [...new Set(posts.flatMap(post => post.tags || []))];
+    tags.forEach(tag => {
+        const tagHtml = ejs.render(tagTemplate, {
+            tag,
+            posts: posts.filter(post => post.tags && post.tags.includes(tag)),
+            title: `Tag: ${tag} - Dulkanggg's Corner`,
+            filename: path.join(viewsDir, 'tag.ejs'),
+            basePath: '/dulkanggg'
+        });
+        const tagDir = path.join(distDir, 'tags', tag);
+        fs.mkdirSync(tagDir, { recursive: true });
+        fs.writeFileSync(path.join(tagDir, 'index.html'), tagHtml);
+    });
+
+    // 8. Create search.json
     // We strip markdown to keep the file size reasonable if needed, but for now raw body is okay or just strip it slightly
     const searchIndex = posts.map(post => ({
         title: post.title,

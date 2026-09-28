@@ -1,0 +1,15 @@
+<%- include('partials/header', { basePath: basePath }) %>
+
+<main class="post-archive">
+    <h1 class="year-heading"><span aria-hidden="true">◆</span> Tag: <%= tag %></h1>
+    <% let visibleYear = ''; %>
+    <% posts.forEach(post => { const postYear = String(post.date || '').slice(0, 4); %>
+    <% if (postYear !== visibleYear) { visibleYear = postYear; %>
+    <h2 class="year-heading"><span aria-hidden="true">▦</span> <%= visibleYear %></h2>
+    <% } %>
+    <article class="post-row"><time class="post-date" datetime="<%= post.date %>"><%= post.date %></time><a class="post-title" href="<%= basePath %>/post/<%= post.slug %>"><%= post.title %></a></article>
+    <% }); %>
+    <% if (!posts.length) { %><p class="empty-state">No posts with this tag yet.</p><% } %>
+</main>
+
+<%- include('partials/footer') -%>
