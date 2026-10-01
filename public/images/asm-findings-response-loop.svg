@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 520" role="img" aria-labelledby="title desc">
+  <title id="title">Attack surface finding response loop</title>
+  <desc id="desc">Normalize and deduplicate signals, add ownership and business context, prioritize, assign remediation, verify closure, then update the asset inventory.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#61afef"/></marker>
+    <style>
+      .bg{fill:#202326}.card{fill:#272b2f;stroke:#42484e;stroke-width:2}.text{fill:#e8edf1;font:600 20px 'Segoe UI',Arial,sans-serif}.small{fill:#a6afb8;font:15px 'Segoe UI',Arial,sans-serif}.line{stroke:#61afef;stroke-width:3;fill:none;marker-end:url(#arrow)}.tag{fill:#98c379;font:600 13px 'Segoe UI',Arial,sans-serif}
+    </style>
+  </defs>
+  <rect class="bg" width="1100" height="520" rx="24"/>
+  <text x="48" y="58" class="text" font-size="26">Turn exposure signals into owned work</text>
+  <text x="48" y="88" class="small">A dashboard is a starting point. The loop closes only when an owner validates and resolves the issue.</text>
+  <g transform="translate(70 150)"><rect class="card" width="250" height="110" rx="16"/><text x="24" y="42" class="tag">01 · PREPARE</text><text x="24" y="72" class="text">Normalize + deduplicate</text><text x="24" y="96" class="small">Group repeated signals into assets.</text></g>
+  <path class="line" d="M325 205h95"/>
+  <g transform="translate(430 150)"><rect class="card" width="250" height="110" rx="16"/><text x="24" y="42" class="tag">02 · UNDERSTAND</text><text x="24" y="72" class="text">Add owner + context</text><text x="24" y="96" class="small">Check business need and evidence.</text></g>
+  <path class="line" d="M685 205h95"/>
+  <g transform="translate(790 150)"><rect class="card" width="250" height="110" rx="16"/><text x="24" y="42" class="tag">03 · PRIORITIZE</text><text x="24" y="72" class="text">Rank by real exposure</text><text x="24" y="96" class="small">Impact, reachability, and confidence.</text></g>
+  <path class="line" d="M915 265v70"/>
+  <g transform="translate(790 350)"><rect class="card" width="250" height="110" rx="16"/><text x="24" y="42" class="tag">04 · ASSIGN</text><text x="24" y="72" class="text">Create owned work</text><text x="24" y="96" class="small">Ticket, due date, and clear SLA.</text></g>
+  <path class="line" d="M785 405h-95"/>
+  <g transform="translate(430 350)"><rect class="card" width="250" height="110" rx="16"/><text x="24" y="42" class="tag">05 · REMEDIATE</text><text x="24" y="72" class="text">Fix or decommission</text><text x="24" y="96" class="small">Remove what no longer has a purpose.</text></g>
+  <path class="line" d="M425 405h-95"/>
+  <g transform="translate(70 350)"><rect class="card" width="250" height="110" rx="16"/><text x="24" y="42" class="tag">06 · VERIFY</text><text x="24" y="72" class="text">Confirm and update</text><text x="24" y="96" class="small">Close evidence and refresh inventory.</text></g>
+  <path class="line" d="M75 345C35 260 45 155 90 132"/>
+</svg>
